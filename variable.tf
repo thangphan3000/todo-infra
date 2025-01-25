@@ -1,4 +1,4 @@
-variable "region" {
+variable "aws_region" {
   type    = string
   default = "ap-southeast-1"
 }
@@ -6,6 +6,35 @@ variable "region" {
 variable "environment" {
   type    = string
   default = "dev"
+}
+
+variable "vpc_cidr" {
+  default     = "10.0.0.0/16"
+  description = "CIDR block of the vpc"
+}
+
+variable "public_subnets_cidr" {
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+  description = "CIDR block for Public Subnet"
+}
+
+variable "private_subnets_cidr" {
+  type        = list(string)
+  default     = ["10.0.3.0/24", "10.0.4.0/24"]
+  description = "CIDR block for Private Subnet"
+}
+
+variable "trusted_subnets_cidr" {
+  type        = list(string)
+  default     = ["10.0.5.0/24", "10.0.6.0/24"]
+  description = "CIDR block for Trusted Subnet"
+}
+
+variable "mgmt_subnets_cidr" {
+  type        = list(string)
+  default     = ["10.0.7.0/25", "10.0.7.128/25"]
+  description = "CIDR block for Management Subnet"
 }
 
 variable "image_id" {
@@ -40,6 +69,6 @@ variable "amis" {
 }
 
 variable "key_pair_path" {
-  type = string
+  type    = string
   default = "./key-pair/operation-key.pub"
 }
