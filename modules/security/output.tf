@@ -1,3 +1,7 @@
-output "public_security_group_id" {
-  value = aws_security_group.public_security_group.id
+output "bastion_sg_id" {
+  value = aws_security_group.mgmt_sg.id
+}
+
+output "db_sg_id" {
+  value = aws_security_group.db_sg.id
 }

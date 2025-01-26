@@ -1,14 +1,8 @@
-variable "region" {
-  type    = string
-  default = "ap-southeast-1"
+variable "aws_region" {
+  type = string
 }
 
-variable "image_id" {
-  type     = string
-  nullable = false
-}
-
-variable "instance_type" {
+variable "environment" {
   type     = string
   nullable = false
 }
@@ -18,7 +12,42 @@ variable "key_name" {
   nullable = false
 }
 
-variable "security_group_ids" {
+variable "bastion_ami" {
+  type     = string
+  nullable = false
+}
+
+variable "bastion_instance_type" {
+  type     = string
+  nullable = false
+}
+
+variable "bastion_sg_id" {
+  type     = string
+  nullable = false
+}
+
+variable "db_ami" {
+  type     = string
+  nullable = false
+}
+
+variable "db_instance_type" {
+  type     = string
+  nullable = false
+}
+
+variable "db_sg_id" {
+  type     = string
+  nullable = false
+}
+
+variable "mgmt_subnet_id" {
+  type     = string
+  nullable = false
+}
+
+variable "trusted_subnet_ids" {
   type     = list(string)
   nullable = false
 }

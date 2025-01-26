@@ -1,4 +1,19 @@
-variable "region" {
-  type    = string
-  default = "ap-southeast-1"
+variable "aws_region" {
+  type     = string
+  nullable = false
+}
+
+variable "vpc_id" {
+  type     = string
+  nullable = false
+}
+
+variable "environment" {
+  type     = string
+  nullable = false
+}
+
+variable "trusted_subnets_cidr" {
+  type     = list(string)
+  nullable = false
 }

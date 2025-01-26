@@ -1,7 +1,7 @@
 # Folders
-.terraform/*
+.terraform
 .terraform.lock.hcl
-key-pair
+keypair
 
 # Files
 *.tfvars
