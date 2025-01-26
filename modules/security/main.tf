@@ -14,6 +14,13 @@ resource "aws_security_group" "mgmt_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.db_sg.id]
+  }
+
   tags = {
     Name        = "${var.environment}-mgmt-sg"
     Environment = "${var.environment}"
@@ -29,7 +36,7 @@ resource "aws_security_group" "db_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = var.trusted_subnets_cidr
+    cidr_blocks = var.mgmt_subnets_cidr
   }
 
   egress {

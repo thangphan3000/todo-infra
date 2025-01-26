@@ -19,11 +19,11 @@ module "networking" {
 }
 
 module "security" {
-  source               = "./modules/security"
-  aws_region           = var.aws_region
-  environment          = var.environment
-  vpc_id               = module.networking.vpc_id
-  trusted_subnets_cidr = var.trusted_subnets_cidr
+  source            = "./modules/security"
+  aws_region        = var.aws_region
+  environment       = var.environment
+  vpc_id            = module.networking.vpc_id
+  mgmt_subnets_cidr = var.mgmt_subnets_cidr
 }
 
 module "compute" {
