@@ -24,6 +24,7 @@ module "security" {
   environment       = var.environment
   vpc_id            = module.networking.vpc_id
   mgmt_subnets_cidr = var.mgmt_subnets_cidr
+  trusted_subnets_cidr = var.trusted_subnets_cidr
 }
 
 module "compute" {
