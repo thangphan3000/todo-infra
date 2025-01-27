@@ -2,8 +2,8 @@ provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_key_pair" "operation_keypair" {
-  key_name   = "operation-keypair"
+resource "aws_key_pair" "keypair" {
+  key_name   = "keypair"
   public_key = file(var.keypair_path)
 }
 
@@ -31,7 +31,8 @@ module "compute" {
   source                = "./modules/compute"
   aws_region            = var.aws_region
   environment           = var.environment
-  key_name              = aws_key_pair.operation_keypair.key_name
+  key_name              = aws_key_pair.keypair.key_name
+  keypair_private       = file(var.keypair_private_path)
   bastion_ami           = var.bastion_ami
   bastion_instance_type = var.instance_types[var.environment]
   bastion_sg_id         = module.security.bastion_sg_id

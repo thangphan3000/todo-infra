@@ -43,6 +43,11 @@ variable "keypair_path" {
   default = "./keypair/operation.pub"
 }
 
+variable "keypair_private_path" {
+  type    = string
+  default = "./keypair/operation"
+}
+
 variable "instance_types" {
   type        = map(string)
   description = "Instance type based on environment"

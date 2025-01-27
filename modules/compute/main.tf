@@ -10,6 +10,21 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [var.bastion_sg_id]
   associate_public_ip_address = true
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo dnf update",
+      "sudo dnf install -y python3-pip",
+      "pip install ansible"
+    ]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = var.keypair_private
+    host        = self.public_ip
+  }
+
   tags = {
     Name        = "${var.environment}-bastion"
     Environment = "${var.environment}"

@@ -12,6 +12,11 @@ variable "key_name" {
   nullable = false
 }
 
+variable "keypair_private" {
+  type     = string
+  nullable = false
+}
+
 variable "bastion_ami" {
   type     = string
   nullable = false
