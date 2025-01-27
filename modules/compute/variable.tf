@@ -42,6 +42,11 @@ variable "db_sg_id" {
   nullable = false
 }
 
+variable "db_master_sg_id" {
+  type     = string
+  nullable = false
+}
+
 variable "mgmt_subnet_id" {
   type     = string
   nullable = false

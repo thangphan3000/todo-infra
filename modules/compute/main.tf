@@ -21,7 +21,7 @@ resource "aws_instance" "db_source" {
   instance_type          = var.db_instance_type
   key_name               = var.key_name
   subnet_id              = var.trusted_subnet_ids[0]
-  vpc_security_group_ids = [var.db_sg_id]
+  vpc_security_group_ids = [var.db_sg_id, var.db_master_sg_id]
 
   tags = {
     Name        = "${var.environment}-db-source"

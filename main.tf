@@ -19,11 +19,11 @@ module "networking" {
 }
 
 module "security" {
-  source            = "./modules/security"
-  aws_region        = var.aws_region
-  environment       = var.environment
-  vpc_id            = module.networking.vpc_id
-  mgmt_subnets_cidr = var.mgmt_subnets_cidr
+  source               = "./modules/security"
+  aws_region           = var.aws_region
+  environment          = var.environment
+  vpc_id               = module.networking.vpc_id
+  mgmt_subnets_cidr    = var.mgmt_subnets_cidr
   trusted_subnets_cidr = var.trusted_subnets_cidr
 }
 
@@ -39,5 +39,6 @@ module "compute" {
   db_ami                = var.db_ami
   db_instance_type      = var.db_instance_types[var.environment]
   db_sg_id              = module.security.db_sg_id
+  db_master_sg_id       = module.security.db_master_id
   trusted_subnet_ids    = module.networking.trusted_subnet_ids
 }
