@@ -7,32 +7,17 @@ variable "environment" {
   nullable = false
 }
 
-variable "key_name" {
+variable "db_username" {
   type     = string
   nullable = false
 }
 
-variable "bastion_private_key" {
+variable "db_password" {
   type     = string
   nullable = false
 }
 
-variable "bastion_ami" {
-  type     = string
-  nullable = false
-}
-
-variable "bastion_instance_type" {
-  type     = string
-  nullable = false
-}
-
-variable "bastion_sg_id" {
-  type     = string
-  nullable = false
-}
-
-variable "mgmt_subnet_id" {
+variable "db_sg_id" {
   type     = string
   nullable = false
 }

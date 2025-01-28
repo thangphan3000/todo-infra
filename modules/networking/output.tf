@@ -3,7 +3,7 @@ output "vpc_id" {
 }
 
 output "trusted_subnet_ids" {
-  value = [for subnet in aws_subnet.trusted_subnet : subnet.id]
+  value = aws_subnet.trusted_subnet[*].id
 
 }
 

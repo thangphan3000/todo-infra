@@ -10,49 +10,23 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [var.bastion_sg_id]
   associate_public_ip_address = true
 
+  # install the MySQL command-line client
   provisioner "remote-exec" {
     inline = [
       "sudo dnf update",
-      "sudo dnf install -y python3-pip",
-      "pip install ansible"
+      "sudo dnf install -y mariadb105"
     ]
   }
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = var.keypair_private
+    private_key = var.bastion_private_key
     host        = self.public_ip
   }
 
   tags = {
     Name        = "${var.environment}-bastion"
-    Environment = "${var.environment}"
-  }
-}
-
-resource "aws_instance" "db_source" {
-  ami                    = var.db_ami
-  instance_type          = var.db_instance_type
-  key_name               = var.key_name
-  subnet_id              = var.trusted_subnet_ids[0]
-  vpc_security_group_ids = [var.db_sg_id, var.db_master_sg_id]
-
-  tags = {
-    Name        = "${var.environment}-db-source"
-    Environment = "${var.environment}"
-  }
-}
-
-resource "aws_instance" "db_replica" {
-  ami                    = var.db_ami
-  instance_type          = var.db_instance_type
-  key_name               = var.key_name
-  subnet_id              = var.trusted_subnet_ids[1]
-  vpc_security_group_ids = [var.db_sg_id]
-
-  tags = {
-    Name        = "${var.environment}-db-replica"
     Environment = "${var.environment}"
   }
 }

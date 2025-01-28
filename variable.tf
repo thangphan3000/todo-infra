@@ -1,3 +1,8 @@
+variable "project_name" {
+  type    = string
+  default = "todo"
+}
+
 variable "aws_region" {
   type    = string
   default = "ap-southeast-1"
@@ -9,33 +14,28 @@ variable "environment" {
 }
 
 variable "vpc_cidr" {
-  type        = string
-  default     = "10.0.0.0/16"
-  description = "CIDR block of the vpc"
+  type    = string
+  default = "10.0.0.0/16"
 }
 
 variable "public_subnets_cidr" {
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
-  description = "CIDR block for Public Subnet"
+  type    = list(string)
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "private_subnets_cidr" {
-  type        = list(string)
-  default     = ["10.0.3.0/24", "10.0.4.0/24"]
-  description = "CIDR block for Private Subnet"
+  type    = list(string)
+  default = ["10.0.3.0/24", "10.0.4.0/24"]
 }
 
 variable "trusted_subnets_cidr" {
-  type        = list(string)
-  default     = ["10.0.5.0/24", "10.0.6.0/24"]
-  description = "CIDR block for Trusted Subnet"
+  type    = list(string)
+  default = ["10.0.5.0/24", "10.0.6.0/24"]
 }
 
 variable "mgmt_subnets_cidr" {
-  type        = list(string)
-  default     = ["10.0.7.0/25", "10.0.7.128/25"]
-  description = "CIDR block for Management Subnet"
+  type    = list(string)
+  default = ["10.0.7.0/25", "10.0.7.128/25"]
 }
 
 variable "keypair_path" {
@@ -43,14 +43,13 @@ variable "keypair_path" {
   default = "./keypair/operation.pub"
 }
 
-variable "keypair_private_path" {
+variable "private_keypair_path" {
   type    = string
   default = "./keypair/operation"
 }
 
 variable "instance_types" {
-  type        = map(string)
-  description = "Instance type based on environment"
+  type = map(string)
   default = {
     "prod" : "t3.micro",
     "dev" : "t2.micro",
@@ -73,4 +72,22 @@ variable "db_instance_types" {
     "prod" : "t3.micro",
     "dev" : "t2.micro",
   }
+}
+
+variable "db_username" {
+  type = string
+}
+
+variable "db_password" {
+  type = string
+}
+
+variable "domain_name" {
+  type    = string
+  default = "cozy-todo.click"
+}
+
+variable "bastion_record_name" {
+  type    = string
+  default = "bastion"
 }
