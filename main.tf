@@ -2,22 +2,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-locals {
-  project_name = var.project_name
-}
-
-data "aws_route53_zone" "hosted_zone" {
-  name = var.domain_name
-}
-
-resource "aws_route53_record" "domain" {
-  zone_id = data.aws_route53_zone.hosted_zone.zone_id
-  name    = var.bastion_record_name
-  type    = "A"
-  ttl     = 300
-  records = [module.compute.bastion_public_ip]
-}
-
 resource "aws_key_pair" "keypair" {
   key_name   = "keypair"
   public_key = file(var.keypair_path)
@@ -64,4 +48,12 @@ module "database" {
   db_password        = var.db_password
   db_sg_id           = module.security.db_sg_id
   trusted_subnet_ids = module.networking.trusted_subnet_ids
+}
+
+module "dns" {
+  source              = "./modules/dns"
+  aws_region          = var.aws_region
+  root_domain         = var.root_domain
+  bastion_record_name = var.bastion_record_name
+  bastion_public_ip   = module.compute.bastion_public_ip
 }

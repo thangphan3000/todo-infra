@@ -14,7 +14,7 @@ resource "aws_db_subnet_group" "subnet_group" {
 
 resource "aws_db_instance" "db" {
   db_name                = "todo"
-  identifier             = var.aws_region
+  identifier             = "${var.aws_region}-db-instance"
   instance_class         = "db.t3.micro"
   engine                 = "mysql"
   engine_version         = "8.0.40"
@@ -24,6 +24,7 @@ resource "aws_db_instance" "db" {
   allocated_storage      = 20
   vpc_security_group_ids = [var.db_sg_id]
   db_subnet_group_name   = aws_db_subnet_group.subnet_group.name
+  backup_retention_period = 7
   skip_final_snapshot    = true
 
   tags = {

@@ -82,7 +82,7 @@ variable "db_password" {
   type = string
 }
 
-variable "domain_name" {
+variable "root_domain" {
   type    = string
   default = "cozy-todo.click"
 }

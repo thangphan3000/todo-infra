@@ -10,7 +10,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [var.bastion_sg_id]
   associate_public_ip_address = true
 
-  # install the MySQL command-line client
+  # Install the MySQL cli
   provisioner "remote-exec" {
     inline = [
       "sudo dnf update",
