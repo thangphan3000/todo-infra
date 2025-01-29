@@ -32,12 +32,7 @@ variable "bastion_sg_id" {
   nullable = false
 }
 
-variable "mgmt_subnet_id" {
+variable "public_subnet_id" {
   type     = string
-  nullable = false
-}
-
-variable "trusted_subnet_ids" {
-  type     = list(string)
   nullable = false
 }

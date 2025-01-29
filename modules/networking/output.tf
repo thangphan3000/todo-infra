@@ -7,6 +7,6 @@ output "trusted_subnet_ids" {
 
 }
 
-output "mgmt_subnet_ids" {
-  value = [for subnet in aws_subnet.mgmt_subnet : subnet.id]
+output "public_subnet_ids" {
+  value = aws_subnet.public_subnet[*].id
 }

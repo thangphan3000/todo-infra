@@ -12,23 +12,24 @@ resource "aws_db_subnet_group" "subnet_group" {
   }
 }
 
-resource "aws_db_instance" "db" {
-  db_name                = "todo"
-  identifier             = "${var.aws_region}-db-instance"
-  instance_class         = "db.t3.micro"
-  engine                 = "mysql"
-  engine_version         = "8.0.40"
-  username               = var.db_username
-  password               = var.db_password
-  port                   = 3306
-  allocated_storage      = 20
-  vpc_security_group_ids = [var.db_sg_id]
-  db_subnet_group_name   = aws_db_subnet_group.subnet_group.name
-  backup_retention_period = 7
-  skip_final_snapshot    = true
+resource "aws_rds_cluster" "cluster" {
+  cluster_identifier        = "${var.environment}-cluster"
+  engine                    = "mysql"
+  db_subnet_group_name      = aws_db_subnet_group.subnet_group.name
+  db_cluster_instance_class = var.db_instance_class
+  database_name             = var.db_name
+  port                      = var.db_port
+  storage_type              = var.db_storage_type
+  allocated_storage         = var.db_allocated_storage
+  master_username           = var.db_username
+  master_password           = var.db_password
+  backup_retention_period   = var.db_backup_retention_period
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.environment}-${var.db_final_snapshot_identifier}-${timestamp()}"
+  vpc_security_group_ids    = [var.db_sg_id]
 
   tags = {
-    Name        = "${var.environment}-db"
+    Name        = "${var.environment}-cluster"
     Environment = "${var.environment}"
   }
 }

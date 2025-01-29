@@ -2,9 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_security_group" "mgmt_sg" {
-  name        = "mgmt-sg"
-  description = "Allow to manage/ debug servers"
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-sg"
+  description = "Allow to debug servers"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -15,13 +15,6 @@ resource "aws_security_group" "mgmt_sg" {
   }
 
   egress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.db_sg.id]
-  }
-
-  egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -29,21 +22,21 @@ resource "aws_security_group" "mgmt_sg" {
   }
 
   tags = {
-    Name        = "${var.environment}-mgmt-sg"
+    Name        = "${var.environment}-bastion-sg"
     Environment = "${var.environment}"
   }
 }
 
 resource "aws_security_group" "db_sg" {
   name        = "db-sg"
-  description = "Allow to security database"
+  description = "Allow to be debug through Bastion Host"
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion_sg.id]
   }
 
   tags = {

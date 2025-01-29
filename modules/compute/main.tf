@@ -6,7 +6,7 @@ resource "aws_instance" "bastion" {
   ami                         = var.bastion_ami
   instance_type               = var.bastion_instance_type
   key_name                    = var.key_name
-  subnet_id                   = var.mgmt_subnet_id
+  subnet_id                   = var.public_subnet_id
   vpc_security_group_ids      = [var.bastion_sg_id]
   associate_public_ip_address = true
 
