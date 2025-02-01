@@ -41,3 +41,23 @@ mysql -u admin -p -h ap-southeast-1.abc.ap-southeast-1.rds.amazonaws.com -P 3306
 ```bash
 terraform plan --var-file 'terraform-dev.tfvars' -refresh-only
 ```
+
+## Update kube-config through AWS STS
+
+- Check your current permissions
+
+```bash
+AWS_PROFILE=123_AdministratorAccess aws sts get-caller-identity
+```
+
+- Update kube-config from remote AWS to your local machine
+
+```bash
+AWS_PROFILE=123_AdministratorAccess aws eks update-kubeconfig --name nonprod-eks-cluster
+```
+
+## Check auth of my current sts profile
+
+```bash
+kubectl auth can-i '*' '*'
+```

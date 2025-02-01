@@ -43,8 +43,7 @@ variable "keypair_path" {
 }
 
 variable "private_keypair_path" {
-  type    = string
-  default = "./keypair/operation"
+  type = string
 }
 
 variable "instance_types" {
@@ -74,60 +73,43 @@ variable "db_ami" {
 # Database
 #
 
-variable "db_username" {
-  type = string
-}
-
-variable "db_password" {
-  type = string
-}
-
-variable "db_name" {
-  type = string
-}
-
-variable "db_port" {
-  type    = number
-  default = 3306
-}
-
-variable "db_instance_class" {
-  type    = string
-  default = "db.t3.micro"
-}
-
-variable "db_storage_type" {
-  type    = string
-  default = "gp3"
-}
-
-variable "db_allocated_storage" {
-  type    = number
-  default = 20
-}
-
-variable "db_backup_retention_period" {
-  type    = number
-  default = 7
-}
-
-variable "db_final_snapshot_identifier" {
-  type    = string
-  default = "app-db-snapshot"
-}
-
-variable "db_engine_version" {
-  type    = string
-  default = "8.0.40"
+variable "db_config" {
+  type = object({
+    username = string
+    password = string
+    name     = string
+    engine = object({
+      type    = string
+      version = string
+    })
+    port                      = number
+    allocated_storage         = number
+    instance_class            = string
+    backup_retention_period   = number
+    storage_type              = string
+    final_snapshot_identifier = string
+  })
 }
 
 #
 # Compute
 #
 
-variable "eks_version" {
-  type    = string
-  default = "1.32"
+variable "eks_config" {
+  type = object({
+    kubernetes_version = string
+    node_group = object({
+      name                 = string
+      capacity_type        = string
+      instance_type        = string
+      max_unavailable_node = number
+      scaling_config = object({
+        desired_size = number
+        min_size     = number
+        max_size     = number
+      })
+    })
+  })
 }
 
 #

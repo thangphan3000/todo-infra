@@ -37,25 +37,16 @@ module "compute" {
   bastion_sg_id         = module.security.bastion_sg_id
   public_subnet_id      = module.networking.public_subnet_ids[0]
   private_subnet_ids    = module.networking.private_subnet_ids
-  eks_version           = var.eks_version
+  eks_config            = var.eks_config
 }
 
 module "database" {
-  source                       = "./modules/database"
-  aws_region                   = var.aws_region
-  environment                  = var.environment
-  db_engine_version            = var.db_engine_version
-  db_port                      = var.db_port
-  db_username                  = var.db_username
-  db_password                  = var.db_password
-  db_name                      = var.db_name
-  db_instance_class            = var.db_instance_class
-  db_storage_type              = var.db_storage_type
-  db_allocated_storage         = var.db_allocated_storage
-  db_backup_retention_period   = var.db_backup_retention_period
-  db_final_snapshot_identifier = var.db_final_snapshot_identifier
-  db_sg_id                     = module.security.db_sg_id
-  trusted_subnet_ids           = module.networking.trusted_subnet_ids
+  source             = "./modules/database"
+  aws_region         = var.aws_region
+  environment        = var.environment
+  db_config          = var.db_config
+  db_sg_id           = module.security.db_sg_id
+  trusted_subnet_ids = module.networking.trusted_subnet_ids
 }
 
 module "dns" {

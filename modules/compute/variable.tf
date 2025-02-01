@@ -37,12 +37,24 @@ variable "public_subnet_id" {
   nullable = false
 }
 
-variable "eks_version" {
-  type     = string
-  nullable = false
-}
-
 variable "private_subnet_ids" {
   type     = list(string)
   nullable = false
+}
+
+variable "eks_config" {
+  type = object({
+    kubernetes_version = string
+    node_group = object({
+      name                 = string
+      capacity_type        = string
+      instance_type        = string
+      max_unavailable_node = number
+      scaling_config = object({
+        desired_size = number
+        min_size     = number
+        max_size     = number
+      })
+    })
+  })
 }

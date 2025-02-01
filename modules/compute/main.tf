@@ -56,7 +56,7 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
 
 resource "aws_eks_cluster" "eks" {
   name     = "${var.environment}-eks-cluster"
-  version  = var.eks_version
+  version  = var.eks_config.kubernetes_version
   role_arn = aws_iam_role.eks.arn
 
   vpc_config {
@@ -110,25 +110,25 @@ resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_on
 
 resource "aws_eks_node_group" "general" {
   cluster_name    = aws_eks_cluster.eks.name
-  version         = var.eks_version
-  node_group_name = "general"
+  version         = var.eks_config.kubernetes_version
+  node_group_name = var.eks_config.node_group.name
   node_role_arn   = aws_iam_role.nodes.arn
   subnet_ids      = var.private_subnet_ids
-  capacity_type   = "ON_DEMAND"
-  instance_types  = ["t3.large"]
+  capacity_type   = var.eks_config.node_group.capacity_type
+  instance_types  = [var.eks_config.node_group.instance_type]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 10
-    min_size     = 1
+    desired_size = var.eks_config.node_group.scaling_config.desired_size
+    max_size     = var.eks_config.node_group.scaling_config.max_size
+    min_size     = var.eks_config.node_group.scaling_config.min_size
   }
 
   update_config {
-    max_unavailable = 1
+    max_unavailable = var.eks_config.node_group.max_unavailable_node
   }
 
   labels = {
-    role = "general"
+    role = var.eks_config.node_group.name
   }
 
   depends_on = [
