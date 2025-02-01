@@ -36,3 +36,13 @@ variable "public_subnet_id" {
   type     = string
   nullable = false
 }
+
+variable "eks_version" {
+  type     = string
+  nullable = false
+}
+
+variable "private_subnet_ids" {
+  type     = list(string)
+  nullable = false
+}

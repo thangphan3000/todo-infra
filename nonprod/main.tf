@@ -3,13 +3,13 @@ provider "aws" {
 }
 
 module "credential" {
-  source       = "./modules/credential"
+  source       = "../modules/credential"
   keypair_path = var.keypair_path
   key_name     = var.credential_key_name
 }
 
 module "networking" {
-  source               = "./modules/networking"
+  source               = "../modules/networking"
   aws_region           = var.aws_region
   environment          = var.environment
   vpc_cidr             = var.vpc_cidr
@@ -19,7 +19,7 @@ module "networking" {
 }
 
 module "security" {
-  source               = "./modules/security"
+  source               = "../modules/security"
   aws_region           = var.aws_region
   environment          = var.environment
   vpc_id               = module.networking.vpc_id
@@ -27,7 +27,7 @@ module "security" {
 }
 
 module "compute" {
-  source                = "./modules/compute"
+  source                = "../modules/compute"
   aws_region            = var.aws_region
   environment           = var.environment
   key_name              = module.credential.key_name
@@ -36,12 +36,15 @@ module "compute" {
   bastion_instance_type = var.instance_types[var.environment]
   bastion_sg_id         = module.security.bastion_sg_id
   public_subnet_id      = module.networking.public_subnet_ids[0]
+  private_subnet_ids    = module.networking.private_subnet_ids
+  eks_version           = var.eks_version
 }
 
 module "database" {
   source                       = "./modules/database"
   aws_region                   = var.aws_region
   environment                  = var.environment
+  db_engine_version            = var.db_engine_version
   db_port                      = var.db_port
   db_username                  = var.db_username
   db_password                  = var.db_password
@@ -56,8 +59,9 @@ module "database" {
 }
 
 module "dns" {
-  source              = "./modules/dns"
+  source              = "../modules/dns"
   aws_region          = var.aws_region
+  environment         = var.environment
   root_domain         = var.root_domain
   bastion_record_name = var.bastion_record_name
   bastion_public_ip   = module.compute.bastion_public_ip

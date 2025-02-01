@@ -3,6 +3,11 @@ variable "aws_region" {
   nullable = false
 }
 
+variable "environment" {
+  type     = string
+  nullable = false
+}
+
 variable "root_domain" {
   type     = string
   nullable = false

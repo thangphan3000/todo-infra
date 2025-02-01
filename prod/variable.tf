@@ -22,23 +22,19 @@ variable "credential_key_name" {
 #
 
 variable "vpc_cidr" {
-  type    = string
-  default = "10.0.0.0/16"
+  type = string
 }
 
 variable "public_subnets_cidr" {
-  type    = list(string)
-  default = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  type = list(string)
 }
 
 variable "private_subnets_cidr" {
-  type    = list(string)
-  default = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  type = list(string)
 }
 
 variable "trusted_subnets_cidr" {
-  type    = list(string)
-  default = ["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"]
+  type = list(string)
 }
 
 variable "keypair_path" {
@@ -71,14 +67,6 @@ variable "bastion_ami" {
 variable "db_ami" {
   type    = string
   default = "ami-0672fd5b9210aa093"
-}
-
-variable "db_instance_types" {
-  type = map(string)
-  default = {
-    "prod" : "t3.micro",
-    "dev" : "t2.micro",
-  }
 }
 
 #
@@ -125,6 +113,11 @@ variable "db_backup_retention_period" {
 variable "db_final_snapshot_identifier" {
   type    = string
   default = "app-db-snapshot"
+}
+
+variable "db_engine_version" {
+  type    = string
+  default = "8.0.40"
 }
 
 #
