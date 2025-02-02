@@ -26,6 +26,12 @@ module "security" {
   trusted_subnets_cidr = var.trusted_subnets_cidr
 }
 
+module "container_registry" {
+  source      = "../modules/container-registry"
+  aws_region  = var.aws_region
+  environment = var.environment
+}
+
 module "compute" {
   source                = "../modules/compute"
   aws_region            = var.aws_region
