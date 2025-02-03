@@ -31,7 +31,7 @@ resource "aws_instance" "bastion" {
 }
 
 resource "aws_iam_role" "eks" {
-  name = "${var.environment}-eks-cluster"
+  name = "${var.environment}-eksClusterAdmin"
 
   assume_role_policy = <<POLICY
 {
@@ -75,7 +75,7 @@ resource "aws_eks_cluster" "eks" {
 }
 
 resource "aws_iam_role" "nodes" {
-  name = "${var.environment}-eks-nodes"
+  name = "${var.environment}-eksEC2NodeGroup"
 
   assume_role_policy = <<POLICY
 {
