@@ -141,3 +141,46 @@ resource "aws_eks_node_group" "general" {
     ignore_changes = [scaling_config[0].desired_size]
   }
 }
+
+resource "aws_eks_addon" "eks_addon_pod_identity" {
+  cluster_name  = aws_eks_cluster.eks.name
+  addon_name    = "eks-pod-identity-agent"
+  addon_version = "v1.3.4-eksbuild.1"
+  service_account_role_arn = aws_iam_role.pod_identity.arn
+}
+
+resource "aws_iam_role" "pod_identity" {
+  name               = "${var.environment}-eksPodIdentity"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+          "Service": [
+              "pods.eks.amazonaws.com"
+          ]
+      },
+      "Action": [
+          "sts:AssumeRole",
+          "sts:TagSession"
+      ]
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "s3" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  role       = aws_iam_role.pod_identity.name
+}
+
+resource "aws_eks_pod_identity_association" "pod_identity" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "test"
+  service_account = "nginx-sa"
+  role_arn        = aws_iam_role.pod_identity.arn
+}
