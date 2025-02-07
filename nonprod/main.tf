@@ -29,6 +29,7 @@ module "security" {
 module "container_registry" {
   source      = "../modules/container-registry"
   aws_region  = var.aws_region
+  project     = var.project
   environment = var.environment
 }
 

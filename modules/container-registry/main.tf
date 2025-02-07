@@ -1,9 +1,6 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 resource "aws_ecr_repository" "ecr" {
-  name                 = "${var.environment}-ecr"
+  for_each             = toset(var.ecr_repositories)
+  name                 = "${var.environment}-${var.project}-${each.value}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -17,7 +14,8 @@ resource "aws_ecr_repository" "ecr" {
 }
 
 resource "aws_ecr_lifecycle_policy" "policy" {
-  repository = aws_ecr_repository.ecr.name
+  for_each   = aws_ecr_repository.ecr
+  repository = each.value.name
 
   policy = <<EOF
 {

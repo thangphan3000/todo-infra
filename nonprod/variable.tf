@@ -2,6 +2,11 @@
 # Common
 #
 
+variable "project" {
+  type    = string
+  default = "cozy-todo"
+}
+
 variable "aws_region" {
   type    = string
   default = "ap-southeast-1"
