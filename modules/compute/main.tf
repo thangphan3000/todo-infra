@@ -143,14 +143,14 @@ resource "aws_eks_node_group" "general" {
 }
 
 resource "aws_eks_addon" "eks_addon_pod_identity" {
-  cluster_name  = aws_eks_cluster.eks.name
-  addon_name    = "eks-pod-identity-agent"
-  addon_version = "v1.3.4-eksbuild.1"
+  cluster_name             = aws_eks_cluster.eks.name
+  addon_name               = "eks-pod-identity-agent"
+  addon_version            = "v1.3.4-eksbuild.1"
   service_account_role_arn = aws_iam_role.pod_identity.arn
 }
 
 resource "aws_iam_role" "pod_identity" {
-  name               = "${var.environment}-eksPodIdentity"
+  name = "${var.environment}-eksPodIdentity"
 
   assume_role_policy = <<POLICY
 {
@@ -183,4 +183,17 @@ resource "aws_eks_pod_identity_association" "pod_identity" {
   namespace       = "test"
   service_account = "nginx-sa"
   role_arn        = aws_iam_role.pod_identity.arn
+}
+
+resource "helm_release" "metrics_server" {
+  name = "metrics-server"
+
+  repository = "https://kubernetes-sigs.github.io/metrics-server"
+  chart = "metrics-server"
+  namespace = "kube-system"
+  version = "3.12.1"
+
+  values = [file("${path.module}/values/metrics-server.yaml")]
+
+  depends_on = [aws_eks_node_group.general]
 }
