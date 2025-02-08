@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 resource "aws_instance" "bastion" {
   ami                         = var.bastion_ami
   instance_type               = var.bastion_instance_type
@@ -55,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
 }
 
 resource "aws_eks_cluster" "eks" {
-  name     = "${var.environment}-eks-cluster"
+  name     = "${var.environment}-cluster"
   version  = var.eks_config.kubernetes_version
   role_arn = aws_iam_role.eks.arn
 
@@ -189,9 +185,9 @@ resource "helm_release" "metrics_server" {
   name = "metrics-server"
 
   repository = "https://kubernetes-sigs.github.io/metrics-server"
-  chart = "metrics-server"
-  namespace = "kube-system"
-  version = "3.12.1"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  version    = "3.12.1"
 
   values = [file("${path.module}/values/metrics-server.yaml")]
 

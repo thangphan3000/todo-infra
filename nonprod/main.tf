@@ -65,18 +65,15 @@ module "dns" {
   bastion_public_ip   = module.compute.bastion_public_ip
 }
 
-data "aws_eks_cluster" "eks" {
-  name = module.compute.eks_cluster_name
-}
-
-data "aws_eks_cluster_auth" "eks" {
-  name = module.compute.eks_cluster_name
-}
-
 provider "helm" {
   kubernetes {
-    host                   = data.aws_eks_cluster.eks.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.eks.token
+    host                   = module.compute.eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.compute.eks_cluster_ca_certificate)
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", module.compute.eks_cluster_name]
+      command     = "aws"
+    }
   }
 }
