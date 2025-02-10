@@ -22,8 +22,9 @@ resource "aws_subnet" "public_subnet" {
   availability_zone = element(local.azs, count.index)
 
   tags = {
-    Name        = "${var.environment}-${element(local.azs, count.index)}-public-subnet"
-    Environment = "${var.environment}"
+    Name                     = "${var.environment}-${element(local.azs, count.index)}-public-subnet"
+    Environment              = "${var.environment}"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 

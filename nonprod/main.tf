@@ -37,6 +37,7 @@ module "compute" {
   source                = "../modules/compute"
   aws_region            = var.aws_region
   environment           = var.environment
+  vpc_id                = module.networking.vpc_id
   key_name              = module.credential.key_name
   bastion_private_key   = file(var.private_keypair_path)
   bastion_ami           = var.bastion_ami

@@ -7,6 +7,11 @@ variable "environment" {
   nullable = false
 }
 
+variable "vpc_id" {
+  type     = string
+  nullable = false
+}
+
 variable "key_name" {
   type     = string
   nullable = false
