@@ -169,18 +169,14 @@ resource "aws_iam_role" "pod_identity" {
 POLICY
 }
 
-// TODO: remove this one
-resource "aws_iam_role_policy_attachment" "s3" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-  role       = aws_iam_role.pod_identity.name
-}
-
+/*
 resource "aws_eks_pod_identity_association" "pod_identity" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "test"
   service_account = "nginx-sa"
   role_arn        = aws_iam_role.pod_identity.arn
 }
+*/
 
 resource "helm_release" "metrics_server" {
   name       = "metrics-server"
@@ -230,7 +226,6 @@ POLICY
 }
 
 resource "aws_iam_policy" "lbc" {
-  # TODO: should improve this one to add the specific Resource not for all resources
   policy = file("${path.module}/iam/AWSLoadBalancerController.json")
   name   = "AWSLoadBalancerController"
 }
@@ -296,4 +291,47 @@ resource "helm_release" "cert_manager" {
     name  = "installCRDs"
     value = "true"
   }
+
+  depends_on = [helm_release.external_nginx]
+}
+
+resource "aws_iam_role" "tls" {
+  name = "${var.environment}-eksPodIdentityRoute53"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+          "Service": [
+              "pods.eks.amazonaws.com"
+          ]
+      },
+      "Action": [
+          "sts:AssumeRole",
+          "sts:TagSession"
+      ]
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy" "tls" {
+  policy = file("${path.module}/iam/AWSRoute53ForCertManager.json")
+  name   = "AWSRoute53ForCertManager"
+}
+
+resource "aws_iam_role_policy_attachment" "tls" {
+  policy_arn = aws_iam_policy.tls.arn
+  role       = aws_iam_role.tls.name
+}
+
+resource "aws_eks_pod_identity_association" "tls" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "cert-manager"
+  service_account = "cert-manager"
+  role_arn        = aws_iam_role.tls.arn
 }

@@ -9,6 +9,10 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod-issuer
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: external-nginx
+      - selector:
+          dnsZones:
+            - cozy-todo.click
+        dns01:
+          route53:
+            region: ap-southeast-1
+            hostedZoneID: Z05835622XT8SM6G0VX1B
