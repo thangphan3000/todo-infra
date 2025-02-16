@@ -169,15 +169,6 @@ resource "aws_iam_role" "pod_identity" {
 POLICY
 }
 
-/*
-resource "aws_eks_pod_identity_association" "pod_identity" {
-  cluster_name    = aws_eks_cluster.eks.name
-  namespace       = "test"
-  service_account = "nginx-sa"
-  role_arn        = aws_iam_role.pod_identity.arn
-}
-*/
-
 resource "helm_release" "metrics_server" {
   name       = "metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server"
@@ -189,17 +180,6 @@ resource "helm_release" "metrics_server" {
 
   depends_on = [aws_eks_node_group.general]
 }
-
-resource "helm_release" "application" {
-  name       = "todo-cozy"
-  repository = "https://thangsuperman.github.io/todo-manifests"
-  chart      = "todo-cozy"
-  namespace  = "default"
-  version    = "0.1.0"
-
-  depends_on = [aws_eks_node_group.general]
-}
-
 
 resource "aws_iam_role" "lbc" {
   name = "${var.environment}-eksPodIdentityLoadBalancerController"
@@ -265,8 +245,8 @@ resource "helm_release" "lbc" {
   }
 }
 
-resource "helm_release" "external_nginx" {
-  name = "external"
+resource "helm_release" "ingress_nginx" {
+  name = "nginx"
 
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
@@ -292,10 +272,10 @@ resource "helm_release" "cert_manager" {
     value = "true"
   }
 
-  depends_on = [helm_release.external_nginx]
+  depends_on = [helm_release.ingress_nginx]
 }
 
-resource "aws_iam_role" "tls" {
+resource "aws_iam_role" "cert_manager" {
   name = "${var.environment}-eksPodIdentityRoute53"
 
   assume_role_policy = <<POLICY
@@ -319,19 +299,104 @@ resource "aws_iam_role" "tls" {
 POLICY
 }
 
-resource "aws_iam_policy" "tls" {
+resource "aws_iam_policy" "cert_manager" {
   policy = file("${path.module}/iam/AWSRoute53ForCertManager.json")
   name   = "AWSRoute53ForCertManager"
 }
 
-resource "aws_iam_role_policy_attachment" "tls" {
-  policy_arn = aws_iam_policy.tls.arn
-  role       = aws_iam_role.tls.name
+resource "aws_iam_role_policy_attachment" "cert_manager" {
+  policy_arn = aws_iam_policy.cert_manager.arn
+  role       = aws_iam_role.cert_manager.name
 }
 
-resource "aws_eks_pod_identity_association" "tls" {
+resource "aws_eks_pod_identity_association" "cert_manager" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "cert-manager"
   service_account = "cert-manager"
-  role_arn        = aws_iam_role.tls.arn
+  role_arn        = aws_iam_role.cert_manager.arn
+}
+
+resource "helm_release" "application" {
+  name       = "todo-cozy"
+  repository = "https://thangsuperman.github.io/todo-manifests"
+  chart      = "todo-cozy"
+  namespace  = "default"
+  version    = "0.1.0"
+
+  depends_on = [helm_release.ingress_nginx, helm_release.cert_manager]
+}
+
+resource "helm_release" "secret_store_csi_driver" {
+  name       = "secrets-store-csi-driver"
+  repository = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
+  chart      = "secrets-store-csi-driver"
+  namespace  = "default"
+  version    = "1.4.3"
+
+  set {
+    name  = "syncSecret.enabled"
+    value = true
+  }
+}
+
+resource "helm_release" "secrets_store_csi_driver_provider" {
+  name       = "aws-secrets-manager"
+  repository = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
+  chart      = "secrets-store-csi-driver-provider-aws"
+  namespace  = "kube-system"
+  version    = "0.3.11"
+}
+
+resource "aws_iam_role" "csi_driver" {
+  name = "${var.environment}-eksPodIdentityCSIDriver"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+          "Service": [
+              "pods.eks.amazonaws.com"
+          ]
+      },
+      "Action": [
+          "sts:AssumeRole",
+          "sts:TagSession"
+      ]
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy" "csi_driver" {
+  name = "${var.environment}-eksSecretsStoreCSIDriver"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "arn:aws:secretsmanager:ap-southeast-1:864899847999:secret:nonprod/app_config-6eN6Hq"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "csi_driver" {
+  policy_arn = aws_iam_policy.csi_driver.arn
+  role       = aws_iam_role.csi_driver.name
+}
+
+resource "aws_eks_pod_identity_association" "csi_driver" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "default"
+  service_account = "secrets-store-csi-driver"
+  role_arn        = aws_iam_role.csi_driver.arn
 }
