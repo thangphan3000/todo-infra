@@ -23,7 +23,7 @@ module "security" {
   aws_region           = var.aws_region
   environment          = var.environment
   vpc_id               = module.networking.vpc_id
-  trusted_subnets_cidr = var.trusted_subnets_cidr
+  private_subnets_cidr = var.private_subnets_cidr
 }
 
 module "container_registry" {

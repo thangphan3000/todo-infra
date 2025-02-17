@@ -39,6 +39,13 @@ resource "aws_security_group" "db_sg" {
     security_groups = [aws_security_group.bastion_sg.id]
   }
 
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = var.private_subnets_cidr
+  }
+
   tags = {
     Name        = "${var.environment}-db-sg"
     Environment = "${var.environment}"

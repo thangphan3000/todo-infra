@@ -92,17 +92,6 @@ resource "aws_route_table" "private" {
   }
 }
 
-/*
-resource "aws_route_table" "trusted" {
-  vpc_id = aws_vpc.vpc.id
-
-  tags = {
-    Name        = "${var.environment}-trusted-route-table"
-    Environment = "${var.environment}"
-  }
-}
-*/
-
 resource "aws_route" "public" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
@@ -126,17 +115,3 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private_subnet.*.id, count.index)
   route_table_id = aws_route_table.private.id
 }
-
-/*
-resource "aws_route" "trusted" {
-  route_table_id         = aws_route_table.trusted.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_nat_gateway.nat.id
-}
-
-resource "aws_route_table_association" "trusted" {
-  count          = length(var.trusted_subnets_cidr)
-  subnet_id      = element(aws_subnet.trusted_subnet.*.id, count.index)
-  route_table_id = aws_route_table.trusted.id
-}
-*/
