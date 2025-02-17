@@ -113,6 +113,11 @@ resource "aws_eks_node_group" "general" {
   capacity_type   = var.eks_config.node_group.capacity_type
   instance_types  = [var.eks_config.node_group.instance_type]
 
+  remote_access {
+    ec2_ssh_key               = var.key_name
+    source_security_group_ids = [var.bastion_sg_id]
+  }
+
   scaling_config {
     desired_size = var.eks_config.node_group.scaling_config.desired_size
     max_size     = var.eks_config.node_group.scaling_config.max_size
