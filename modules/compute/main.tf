@@ -342,6 +342,11 @@ resource "helm_release" "secret_store_csi_driver" {
     name  = "syncSecret.enabled"
     value = true
   }
+
+  set {
+    name  = "enableSecretRotation"
+    value = true
+  }
 }
 
 resource "helm_release" "secrets_store_csi_driver_provider" {
