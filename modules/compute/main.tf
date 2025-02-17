@@ -407,6 +407,6 @@ resource "aws_iam_role_policy_attachment" "csi_driver" {
 resource "aws_eks_pod_identity_association" "csi_driver" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "default"
-  service_account = "secrets-store-csi-driver"
+  service_account = "app-secrets"
   role_arn        = aws_iam_role.csi_driver.arn
 }

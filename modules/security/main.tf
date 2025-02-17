@@ -29,7 +29,7 @@ resource "aws_security_group" "bastion_sg" {
 
 resource "aws_security_group" "db_sg" {
   name        = "db-sg"
-  description = "Allow to be debug through Bastion Host"
+  description = "Allow to be debug through Bastion Host or connect from EKS cluster"
   vpc_id      = var.vpc_id
 
   ingress {
