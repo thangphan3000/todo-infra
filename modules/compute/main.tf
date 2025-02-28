@@ -174,18 +174,6 @@ resource "aws_iam_role" "pod_identity" {
 POLICY
 }
 
-resource "helm_release" "metrics_server" {
-  name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server"
-  chart      = "metrics-server"
-  namespace  = "kube-system"
-  version    = "3.12.1"
-
-  values = [file("${path.module}/values/metrics-server.yaml")]
-
-  depends_on = [aws_eks_node_group.general]
-}
-
 resource "aws_iam_role" "lbc" {
   name = "${var.environment}-eksPodIdentityLoadBalancerController"
 
@@ -409,4 +397,15 @@ resource "aws_eks_pod_identity_association" "csi_driver" {
   namespace       = "default"
   service_account = "app-secrets"
   role_arn        = aws_iam_role.csi_driver.arn
+}
+
+resource "helm_release" "prometheus" {
+  name             = "prometheus"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "kube-prometheus-stack"
+  namespace        = "monitoring"
+  create_namespace = true
+  version          = "45.7.1"
+
+  depends_on = [aws_eks_node_group.general]
 }
