@@ -104,6 +104,34 @@ resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_on
   role       = aws_iam_role.nodes.name
 }
 
+resource "aws_launch_template" "eks_node_launch_template" {
+  name_prefix = "eks-node-launch-template-"
+  key_name    = var.key_name
+
+  vpc_security_group_ids = compact(concat([var.eks_node_sg_id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]))
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size = 20
+      volume_type = "gp3"
+    }
+  }
+
+  network_interfaces {
+    security_groups = []
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Environment = "${var.environment}"
+    }
+  }
+}
+
 resource "aws_eks_node_group" "general" {
   cluster_name    = aws_eks_cluster.eks.name
   version         = var.eks_config.kubernetes_version
@@ -113,9 +141,9 @@ resource "aws_eks_node_group" "general" {
   capacity_type   = var.eks_config.node_group.capacity_type
   instance_types  = [var.eks_config.node_group.instance_type]
 
-  remote_access {
-    ec2_ssh_key               = var.key_name
-    source_security_group_ids = [var.bastion_sg_id]
+  launch_template {
+    id      = aws_launch_template.eks_node_launch_template.id
+    version = "$Latest"
   }
 
   scaling_config {
@@ -314,7 +342,7 @@ resource "helm_release" "application" {
   repository = "https://thangsuperman.github.io/todo-manifests"
   chart      = "todo-cozy"
   namespace  = "default"
-  version    = "0.1.0"
+  version    = "0.1.1"
 
   depends_on = [helm_release.ingress_nginx, helm_release.cert_manager]
 }
@@ -408,4 +436,17 @@ resource "helm_release" "prometheus" {
   version          = "45.7.1"
 
   depends_on = [aws_eks_node_group.general]
+
+  # Override default Grafana dependency chart values
+  set {
+    name  = "grafana.service.type"
+    value = "NodePort"
+  }
+
+  # NOTE: centralize this so that we also manage this same port for eks node launch_template
+  # TODO: the port must add the terraform validation rule for the port range
+  set {
+    name  = "grafana.service.nodePort"
+    value = "32448"
+  }
 }

@@ -46,6 +46,7 @@ module "compute" {
   public_subnet_id      = module.networking.public_subnet_ids[0]
   private_subnet_ids    = module.networking.private_subnet_ids
   eks_config            = var.eks_config
+  eks_node_sg_id        = module.security.eks_node_sg_id
 }
 
 module "database" {

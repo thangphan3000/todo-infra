@@ -37,6 +37,11 @@ variable "bastion_sg_id" {
   nullable = false
 }
 
+variable "eks_node_sg_id" {
+  type     = string
+  nullable = false
+}
+
 variable "public_subnet_id" {
   type     = string
   nullable = false
