@@ -34,19 +34,22 @@ module "container_registry" {
 }
 
 module "compute" {
-  source                = "../modules/compute"
-  aws_region            = var.aws_region
-  environment           = var.environment
-  vpc_id                = module.networking.vpc_id
-  key_name              = module.credential.key_name
-  bastion_private_key   = file(var.private_keypair_path)
-  bastion_ami           = var.bastion_ami
-  bastion_instance_type = var.instance_types[var.environment]
-  bastion_sg_id         = module.security.bastion_sg_id
-  public_subnet_id      = module.networking.public_subnet_ids[0]
-  private_subnet_ids    = module.networking.private_subnet_ids
-  eks_config            = var.eks_config
-  eks_node_sg_id        = module.security.eks_node_sg_id
+  source                   = "../modules/compute"
+  aws_region               = var.aws_region
+  environment              = var.environment
+  vpc_id                   = module.networking.vpc_id
+  key_name                 = module.credential.key_name
+  bastion_private_key      = file(var.private_keypair_path)
+  bastion_ami              = var.bastion_ami
+  bastion_instance_type    = var.instance_types[var.environment]
+  bastion_sg_id            = module.security.bastion_sg_id
+  public_subnet_id         = module.networking.public_subnet_ids[0]
+  private_subnet_ids       = module.networking.private_subnet_ids
+  eks_cluster_config       = var.eks_cluster_config
+  eks_node_sg_id           = module.security.eks_node_sg_id
+  eks_node_launch_template = var.eks_node_launch_template
+  eks_secretsmanager_arn   = var.eks_secretsmanager_arn
+  helm_releases            = var.helm_releases
 }
 
 module "database" {

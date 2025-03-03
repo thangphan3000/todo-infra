@@ -22,7 +22,7 @@ db = {
   final_snapshot_identifier = "app-db-snapshot"
 }
 
-eks_config = {
+eks_cluster_config = {
   kubernetes_version = "1.32"
   node_group = {
     name          = "general"
@@ -34,5 +34,84 @@ eks_config = {
       min_size     = 1
       max_size     = 10
     }
+  }
+}
+
+eks_node_launch_template = {
+  name_prefix = "eks-node-launch-template-"
+  block_device_mappings = {
+    device_name = "/dev/xvda"
+    ebs = {
+      volume_size = 20
+      volume_type = "gp3"
+    }
+  }
+}
+
+eks_secretsmanager_arn = "arn:aws:secretsmanager:ap-southeast-1:<aws-account-id>:secret:nonprod/config"
+
+helm_releases = {
+  "secrets-store-csi-driver" = {
+    release = {
+      repository       = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
+      chart            = "secrets-store-csi-driver"
+      namespace        = "default"
+      create_namespace = false
+      version          = "1.4.3"
+    }
+    default_values = [
+      {
+        name  = "syncSecret.enabled"
+        value = "true"
+      },
+      {
+        name  = "enableSecretRotation"
+        value = "true"
+      }
+    ]
+  }
+  "secrets-store-csi-driver-provider-aws" = {
+    release = {
+      repository       = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
+      chart            = "secrets-store-csi-driver-provider-aws"
+      namespace        = "kube-system"
+      create_namespace = false
+      version          = "0.3.11"
+    }
+    default_values = []
+  }
+  "cert-manager" = {
+    release = {
+      repository       = "https://charts.jetstack.io"
+      chart            = "cert-manager"
+      namespace        = "cert-manager"
+      create_namespace = true
+      version          = "v1.14.5"
+    }
+    default_values = [
+      {
+        name  = "installCRDs"
+        value = "true"
+      }
+    ]
+  }
+  "prometheus" = {
+    release = {
+      repository       = "https://prometheus-community.github.io/helm-charts"
+      chart            = "kube-prometheus-stack"
+      namespace        = "monitoring"
+      create_namespace = true
+      version          = "45.7.1"
+    }
+    default_values = [
+      {
+        name  = "grafana.service.type"
+        value = "NodePort"
+      },
+      {
+        name  = "grafana.service.nodePort"
+        value = "32000"
+      }
+    ]
   }
 }

@@ -1,3 +1,19 @@
+locals {
+  eks_node_security_groups = compact(concat([var.eks_node_sg_id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]))
+  eks_pod_identity_assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = ["pods.eks.amazonaws.com"]
+        }
+        Action = ["sts:AssumeRole", "sts:TagSession"]
+      }
+    ]
+  })
+}
+
 resource "aws_instance" "bastion" {
   ami                         = var.bastion_ami
   instance_type               = var.bastion_instance_type
@@ -52,7 +68,7 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
 
 resource "aws_eks_cluster" "eks" {
   name     = "${var.environment}-cluster"
-  version  = var.eks_config.kubernetes_version
+  version  = var.eks_cluster_config.kubernetes_version
   role_arn = aws_iam_role.eks.arn
 
   vpc_config {
@@ -105,22 +121,17 @@ resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_on
 }
 
 resource "aws_launch_template" "eks_node_launch_template" {
-  name_prefix = "eks-node-launch-template-"
-  key_name    = var.key_name
-
-  vpc_security_group_ids = compact(concat([var.eks_node_sg_id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]))
+  name_prefix            = var.eks_node_launch_template.name_prefix
+  key_name               = var.key_name
+  vpc_security_group_ids = local.eks_node_security_groups
 
   block_device_mappings {
-    device_name = "/dev/xvda"
+    device_name = var.eks_node_launch_template.block_device_mappings.device_name
 
     ebs {
-      volume_size = 20
-      volume_type = "gp3"
+      volume_size = var.eks_node_launch_template.block_device_mappings.ebs.volume_size
+      volume_type = var.eks_node_launch_template.block_device_mappings.ebs.volume_type
     }
-  }
-
-  network_interfaces {
-    security_groups = []
   }
 
   tag_specifications {
@@ -132,14 +143,14 @@ resource "aws_launch_template" "eks_node_launch_template" {
   }
 }
 
-resource "aws_eks_node_group" "general" {
+resource "aws_eks_node_group" "node" {
   cluster_name    = aws_eks_cluster.eks.name
-  version         = var.eks_config.kubernetes_version
-  node_group_name = var.eks_config.node_group.name
+  version         = var.eks_cluster_config.kubernetes_version
+  node_group_name = var.eks_cluster_config.node_group.name
   node_role_arn   = aws_iam_role.nodes.arn
   subnet_ids      = var.private_subnet_ids
-  capacity_type   = var.eks_config.node_group.capacity_type
-  instance_types  = [var.eks_config.node_group.instance_type]
+  capacity_type   = var.eks_cluster_config.node_group.capacity_type
+  instance_types  = [var.eks_cluster_config.node_group.instance_type]
 
   launch_template {
     id      = aws_launch_template.eks_node_launch_template.id
@@ -147,17 +158,17 @@ resource "aws_eks_node_group" "general" {
   }
 
   scaling_config {
-    desired_size = var.eks_config.node_group.scaling_config.desired_size
-    max_size     = var.eks_config.node_group.scaling_config.max_size
-    min_size     = var.eks_config.node_group.scaling_config.min_size
+    desired_size = var.eks_cluster_config.node_group.scaling_config.desired_size
+    max_size     = var.eks_cluster_config.node_group.scaling_config.max_size
+    min_size     = var.eks_cluster_config.node_group.scaling_config.min_size
   }
 
   update_config {
-    max_unavailable = var.eks_config.node_group.max_unavailable_node
+    max_unavailable = var.eks_cluster_config.node_group.max_unavailable_node
   }
 
   labels = {
-    role = var.eks_config.node_group.name
+    role = var.eks_cluster_config.node_group.name
   }
 
   depends_on = [
@@ -179,51 +190,13 @@ resource "aws_eks_addon" "eks_addon_pod_identity" {
 }
 
 resource "aws_iam_role" "pod_identity" {
-  name = "${var.environment}-eksPodIdentity"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-          "Service": [
-              "pods.eks.amazonaws.com"
-          ]
-      },
-      "Action": [
-          "sts:AssumeRole",
-          "sts:TagSession"
-      ]
-    }
-  ]
-}
-POLICY
+  name               = "${var.environment}-eksPodIdentity"
+  assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
 resource "aws_iam_role" "lbc" {
-  name = "${var.environment}-eksPodIdentityLoadBalancerController"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-          "Service": [
-              "pods.eks.amazonaws.com"
-          ]
-      },
-      "Action": [
-          "sts:AssumeRole",
-          "sts:TagSession"
-      ]
-    }
-  ]
-}
-POLICY
+  name               = "${var.environment}-eksPodIdentityLoadBalancerController"
+  assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
 resource "aws_iam_policy" "lbc" {
@@ -280,49 +253,14 @@ resource "helm_release" "ingress_nginx" {
   depends_on = [helm_release.lbc]
 }
 
-resource "helm_release" "cert_manager" {
-  name             = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  chart            = "cert-manager"
-  namespace        = "cert-manager"
-  create_namespace = true
-  version          = "v1.14.5"
-
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-
-  depends_on = [helm_release.ingress_nginx]
-}
-
 resource "aws_iam_role" "cert_manager" {
-  name = "${var.environment}-eksPodIdentityRoute53"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-          "Service": [
-              "pods.eks.amazonaws.com"
-          ]
-      },
-      "Action": [
-          "sts:AssumeRole",
-          "sts:TagSession"
-      ]
-    }
-  ]
-}
-POLICY
+  name               = "${var.environment}-eksPodIdentityRoute53"
+  assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
 resource "aws_iam_policy" "cert_manager" {
-  policy = file("${path.module}/iam/AWSRoute53ForCertManager.json")
   name   = "AWSRoute53ForCertManager"
+  policy = file("${path.module}/iam/AWSRoute53ForCertManager.json")
 }
 
 resource "aws_iam_role_policy_attachment" "cert_manager" {
@@ -337,64 +275,9 @@ resource "aws_eks_pod_identity_association" "cert_manager" {
   role_arn        = aws_iam_role.cert_manager.arn
 }
 
-resource "helm_release" "application" {
-  name       = "todo-cozy"
-  repository = "https://thangsuperman.github.io/todo-manifests"
-  chart      = "todo-cozy"
-  namespace  = "default"
-  version    = "0.1.1"
-
-  depends_on = [helm_release.ingress_nginx, helm_release.cert_manager]
-}
-
-resource "helm_release" "secret_store_csi_driver" {
-  name       = "secrets-store-csi-driver"
-  repository = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
-  chart      = "secrets-store-csi-driver"
-  namespace  = "default"
-  version    = "1.4.3"
-
-  set {
-    name  = "syncSecret.enabled"
-    value = true
-  }
-
-  set {
-    name  = "enableSecretRotation"
-    value = true
-  }
-}
-
-resource "helm_release" "secrets_store_csi_driver_provider" {
-  name       = "aws-secrets-manager"
-  repository = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
-  chart      = "secrets-store-csi-driver-provider-aws"
-  namespace  = "kube-system"
-  version    = "0.3.11"
-}
-
 resource "aws_iam_role" "csi_driver" {
-  name = "${var.environment}-eksPodIdentityCSIDriver"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-          "Service": [
-              "pods.eks.amazonaws.com"
-          ]
-      },
-      "Action": [
-          "sts:AssumeRole",
-          "sts:TagSession"
-      ]
-    }
-  ]
-}
-POLICY
+  name               = "${var.environment}-eksPodIdentityCSIDriver"
+  assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
 resource "aws_iam_policy" "csi_driver" {
@@ -409,7 +292,7 @@ resource "aws_iam_policy" "csi_driver" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = "arn:aws:secretsmanager:ap-southeast-1:864899847999:secret:nonprod/app_config-6eN6Hq"
+        Resource = var.eks_secretsmanager_arn
       }
     ]
   })
@@ -427,26 +310,33 @@ resource "aws_eks_pod_identity_association" "csi_driver" {
   role_arn        = aws_iam_role.csi_driver.arn
 }
 
-resource "helm_release" "prometheus" {
-  name             = "prometheus"
-  repository       = "https://prometheus-community.github.io/helm-charts"
-  chart            = "kube-prometheus-stack"
-  namespace        = "monitoring"
-  create_namespace = true
-  version          = "45.7.1"
+resource "helm_release" "release" {
+  for_each         = var.helm_releases
+  name             = each.key
+  repository       = each.value.release.repository
+  chart            = each.value.release.chart
+  namespace        = each.value.release.namespace
+  version          = each.value.release.version
+  create_namespace = each.value.release.create_namespace
 
-  depends_on = [aws_eks_node_group.general]
+  dynamic "set" {
+    for_each = each.value.default_values
 
-  # Override default Grafana dependency chart values
-  set {
-    name  = "grafana.service.type"
-    value = "NodePort"
+    content {
+      name  = set.value.name
+      value = set.value.value
+    }
   }
 
-  # NOTE: centralize this so that we also manage this same port for eks node launch_template
-  # TODO: the port must add the terraform validation rule for the port range
-  set {
-    name  = "grafana.service.nodePort"
-    value = "32448"
-  }
+  depends_on = [aws_eks_node_group.node]
+}
+
+resource "helm_release" "application" {
+  name       = "todo-cozy"
+  repository = "https://thangsuperman.github.io/todo-manifests"
+  chart      = "todo-cozy"
+  namespace  = "default"
+  version    = "0.1.1"
+
+  depends_on = [helm_release.ingress_nginx, helm_release.release]
 }

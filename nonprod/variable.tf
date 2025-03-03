@@ -61,7 +61,7 @@ variable "instance_types" {
 }
 
 #
-# Instance type and AMI
+# Amazon Machine Images (AMIs)
 #
 
 variable "bastion_ami" {
@@ -100,7 +100,7 @@ variable "db_config" {
 # Compute
 #
 
-variable "eks_config" {
+variable "eks_cluster_config" {
   type = object({
     kubernetes_version = string
     node_group = object({
@@ -115,6 +115,40 @@ variable "eks_config" {
       })
     })
   })
+}
+
+variable "eks_node_launch_template" {
+  type = object({
+    name_prefix = string
+    block_device_mappings = object({
+      device_name = string
+      ebs = object({
+        volume_size = number
+        volume_type = string
+      })
+    })
+  })
+}
+
+variable "eks_secretsmanager_arn" {
+  type     = string
+  nullable = false
+}
+
+variable "helm_releases" {
+  type = map(object({
+    release = object({
+      repository       = string
+      chart            = string
+      namespace        = string
+      version          = string
+      create_namespace = bool
+    })
+    default_values = list(object({
+      name  = string
+      value = string
+    }))
+  }))
 }
 
 #
