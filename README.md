@@ -1,63 +1,53 @@
-# Handbook
+# Todo Infra
 
-## Table of contents
+Todo Infra is used to provision AWS resources. It's based on vanilla Terraform code.
 
-- [Step to debug/ run queries in RDS database through Bastion Host](#How-to-debug-or-run-SQL-queries-in-RDS-database-through-Bastion-Host?)
-- [How to resole diff between Terraform State and AWS console(someone modified in console)](#)
+## How to use
 
-## Step to debug/ run queries in RDS database through Bastion Host
+1. Clone this repo
+2. Install Terraform CLI
+3. Please add all `*.tfvars` files containing sensitive data to your local working environment. Contact the repository owner or the person responsible for this repository to obtain them
 
-### Step 1: Connect to Bastion Host server
+## Set up AWS profile locally
 
-```bash
-ssh ec2-user@bastion.cozy-todo.click
+We must configure AWS profile through AWS CLI.
+
+1. Install latest version of AWS CLI
+2. Obtain access key, secret key, and session token from AWS portal
+3. Configure AWS profile for the current environment
+
+```
+[nonprod]
+aws_access_key_id = <your-access-key-id>
+aws_secret_access_key = <your-secret-access-key>
+aws_session_token = <your-session-token>
+
+[prod]
+aws_access_key_id = <your-access-key-id>
+aws_secret_access_key = <your-secret-access-key>
+aws_session_token = <your-session-token>
 ```
 
-> NOTES: this step require you inputted the private keypair in the ssh-agent.
+4. The temporary security credentials will be expired an hour so you need to refresh refresh it hourly
 
-### Step 2: Get all RDS instances's endpoint
+## Development scripts
 
-```bash
-aws rds describe-db-instances --output json | jq '.DBInstances[].Endpoint.Address'
-```
+This template provides a handful of scripts to make your dev experience better!
 
-### Step 3: Connect RDS's MySQL prompt use MySQL cli client
+- Navigate to the desired environment
+  - `cd nonprod` or `cd prod`
+- Initialize Terraform (First-Time setup)
+  - `terraform init`
+- Run plan for the current directory with a specific profile name
+  - `AWS_PROFILE=nonprod terraform plan --var-file <your-file-name>.tfvars`
+- Run apply
+  - `AWS_PROFILE=nonprod terraform apply --var-file <your-file-name>.tfvars`
+- Format `*.tf` files
+  - `terraform fmt -recursive`
+- Force unlock terraform state. If Terraform halts due to STS (Security Token Service) credentials expiring during an apply operation, you can force-unlock the state using the following command
+  - `AWS_PROFILE=nonprod terraform force-unlock <lock-id>`
 
-- Command structure: -mysql -u <db_username> -p -h <db_host/db_endpoint> -P <db_port> <database_name>
+## Important notes
 
-```bash
-mysql -u admin -p -h ap-southeast-1.abc.ap-southeast-1.rds.amazonaws.com -P 3306 todo
-```
-
-> NOTES:
->
-> 1. please make sure that you run this command in the Bastion Host server
-> 2. for the RDS's password please contact the administrator
-
-## How to resole diff between Terraform State and AWS console(someone modified in console)
-
-### Show diff
-
-```bash
-terraform plan --var-file 'terraform-dev.tfvars' -refresh-only
-```
-
-## Update kube-config through AWS STS
-
-- Check your current permissions
-
-```bash
-AWS_PROFILE=123_AdministratorAccess aws sts get-caller-identity
-```
-
-- Update kube-config from remote AWS to your local machine
-
-```bash
-AWS_PROFILE=123_AdministratorAccess aws eks update-kubeconfig --name nonprod-eks-cluster
-```
-
-## Check auth of my current sts profile
-
-```bash
-kubectl auth can-i '*' '*'
-```
+- Always run `plan` before executing `apply` to review changes and avoid unintended modifications
+- Store sensitive data carefully in `.tfvars` file for preventing commit those to the remote repository. Use `.gitignore` to exclude these files from version control
