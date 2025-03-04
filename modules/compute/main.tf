@@ -239,20 +239,6 @@ resource "helm_release" "aws_lbc" {
   }
 }
 
-resource "helm_release" "ingress_nginx" {
-  name = "nginx"
-
-  repository       = "https://kubernetes.github.io/ingress-nginx"
-  chart            = "ingress-nginx"
-  namespace        = "ingress"
-  create_namespace = true
-  version          = "4.10.1"
-
-  values = [file("${path.module}/values/nginx-ingress.yaml")]
-
-  depends_on = [helm_release.aws_lbc]
-}
-
 resource "aws_iam_role" "cert_manager" {
   name               = "${var.environment}-eksPodIdentityRoute53"
   assume_role_policy = local.eks_pod_identity_assume_role_policy
@@ -338,5 +324,5 @@ resource "helm_release" "application" {
   namespace  = "default"
   version    = "0.1.1"
 
-  depends_on = [helm_release.ingress_nginx, helm_release.release]
+  depends_on = [helm_release.release]
 }

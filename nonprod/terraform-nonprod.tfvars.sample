@@ -114,4 +114,31 @@ helm_releases = {
       }
     ]
   }
+  "ingress-nginx" = {
+    release = {
+      repository       = "https://kubernetes.github.io/ingress-nginx"
+      chart            = "ingress-nginx"
+      namespace        = "ingress"
+      create_namespace = true
+      version          = "4.10.1"
+    }
+    default_values = [
+      {
+        name  = "controller.ingressClassResource.name"
+        value = "ingress-nginx"
+      },
+      {
+        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
+        value = "external"
+      },
+      {
+        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-nlb-target-type"
+        value = "ip"
+      },
+      {
+        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
+        value = "internet-facing"
+      }
+    ]
+  }
 }
