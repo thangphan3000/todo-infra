@@ -194,29 +194,29 @@ resource "aws_iam_role" "pod_identity" {
   assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
-resource "aws_iam_role" "lbc" {
+resource "aws_iam_role" "aws_lbc" {
   name               = "${var.environment}-eksPodIdentityLoadBalancerController"
   assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
-resource "aws_iam_policy" "lbc" {
+resource "aws_iam_policy" "aws_lbc" {
   policy = file("${path.module}/iam/AWSLoadBalancerController.json")
   name   = "AWSLoadBalancerController"
 }
 
-resource "aws_iam_role_policy_attachment" "lbc" {
-  policy_arn = aws_iam_policy.lbc.arn
-  role       = aws_iam_role.lbc.name
+resource "aws_iam_role_policy_attachment" "aws_lbc" {
+  policy_arn = aws_iam_policy.aws_lbc.arn
+  role       = aws_iam_role.aws_lbc.name
 }
 
-resource "aws_eks_pod_identity_association" "lbc" {
+resource "aws_eks_pod_identity_association" "aws_lbc" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "kube-system"
   service_account = "aws-load-balancer-controller"
-  role_arn        = aws_iam_role.lbc.arn
+  role_arn        = aws_iam_role.aws_lbc.arn
 }
 
-resource "helm_release" "lbc" {
+resource "helm_release" "aws_lbc" {
   name       = "eks"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
@@ -250,7 +250,7 @@ resource "helm_release" "ingress_nginx" {
 
   values = [file("${path.module}/values/nginx-ingress.yaml")]
 
-  depends_on = [helm_release.lbc]
+  depends_on = [helm_release.aws_lbc]
 }
 
 resource "aws_iam_role" "cert_manager" {
