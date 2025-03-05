@@ -322,7 +322,7 @@ resource "helm_release" "application" {
   repository = "https://thangsuperman.github.io/todo-manifests"
   chart      = "todo-cozy"
   namespace  = "default"
-  version    = "0.1.1"
+  version    = "0.1.0"
 
   depends_on = [helm_release.release]
 }
