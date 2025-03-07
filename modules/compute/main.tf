@@ -67,7 +67,7 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
 }
 
 resource "aws_eks_cluster" "eks" {
-  name     = "${var.environment}-cluster"
+  name     = "${var.environment}"
   version  = var.eks_cluster_config.kubernetes_version
   role_arn = aws_iam_role.eks.arn
 
