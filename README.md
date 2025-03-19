@@ -2,6 +2,13 @@
 
 Todo Infra is used to provision AWS resources. It's based on vanilla Terraform code.
 
+## Table of contents
+
+- [How to use](#how-to-use)
+- [Set up AWS profile locally](#set-up-aws-profile-locally)
+- [Development scripts](#development-scripts)
+- [Important notes](#important-notes)
+
 ## How to use
 
 1. Clone this repo
