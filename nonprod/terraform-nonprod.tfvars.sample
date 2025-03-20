@@ -142,3 +142,39 @@ helm_releases = {
     ]
   }
 }
+
+vms = {
+  "bastion" = {
+    instance = {
+      ami                         = "ami-0c4e27b0c52857dd6"
+      instance_type               = "t2.micro"
+      security_group_ids          = ["bastion-sg-id"]
+      associate_public_ip_address = true
+    }
+  }
+  "vpn-server" = {
+    instance = {
+      ami                         = "ami-0672fd5b9210aa093"
+      instance_type               = "t2.micro"
+      security_group_ids          = ["vpn-server-sg-id"]
+      associate_public_ip_address = true
+    }
+  }
+}
+
+root_domain = "cozy-todo.click"
+
+subdomains = {
+  "bastion" = {
+    name      = "bastion"
+    public_ip = "bastion-ip"
+    type      = "A"
+    ttl       = 300
+  }
+  "vpn-server" = {
+    name      = "vpn-server"
+    public_ip = "vpn-server-ip"
+    type      = "A"
+    ttl       = 300
+  }
+}

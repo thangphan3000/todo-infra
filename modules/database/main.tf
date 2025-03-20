@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 resource "aws_db_subnet_group" "subnet_group" {
   name       = "${var.environment}-db-subnet-group"
   subnet_ids = var.trusted_subnet_ids

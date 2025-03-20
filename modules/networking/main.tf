@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 locals {
   azs = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
 }

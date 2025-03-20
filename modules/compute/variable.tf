@@ -1,7 +1,3 @@
-variable "aws_region" {
-  type = string
-}
-
 variable "environment" {
   type     = string
   nullable = false
@@ -17,22 +13,12 @@ variable "key_name" {
   nullable = false
 }
 
-variable "bastion_private_key" {
-  type     = string
-  nullable = false
-}
-
-variable "bastion_ami" {
-  type     = string
-  nullable = false
-}
-
-variable "bastion_instance_type" {
-  type     = string
-  nullable = false
-}
-
 variable "bastion_sg_id" {
+  type     = string
+  nullable = false
+}
+
+variable "vpn_server_sg_id" {
   type     = string
   nullable = false
 }
@@ -99,5 +85,16 @@ variable "helm_releases" {
       name  = string
       value = string
     }))
+  }))
+}
+
+variable "vms" {
+  type = map(object({
+    instance = object({
+      ami                         = string
+      instance_type               = string
+      associate_public_ip_address = bool
+      security_group_ids          = list(string)
+    })
   }))
 }

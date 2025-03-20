@@ -12,32 +12,25 @@ locals {
       }
     ]
   })
+  vms = {
+    sg_ids = {
+      "bastion-sg-id"    = var.bastion_sg_id
+      "vpn-server-sg-id" = var.vpn_server_sg_id
+    }
+  }
 }
 
-resource "aws_instance" "bastion" {
-  ami                         = var.bastion_ami
-  instance_type               = var.bastion_instance_type
-  key_name                    = var.key_name
+resource "aws_instance" "vm" {
+  for_each                    = var.vms
   subnet_id                   = var.public_subnet_id
-  vpc_security_group_ids      = [var.bastion_sg_id]
-  associate_public_ip_address = true
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo dnf update",
-      "sudo dnf install -y mariadb105"
-    ]
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = var.bastion_private_key
-    host        = self.public_ip
-  }
+  ami                         = each.value.instance.ami
+  key_name                    = var.key_name
+  instance_type               = each.value.instance.instance_type
+  vpc_security_group_ids      = [for sg_name in each.value.instance.security_group_ids : local.vms.sg_ids[sg_name]]
+  associate_public_ip_address = each.value.instance.associate_public_ip_address
 
   tags = {
-    Name        = "${var.environment}-bastion"
+    Name        = "${var.environment}-${each.key}"
     Environment = "${var.environment}"
   }
 }
@@ -67,7 +60,7 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
 }
 
 resource "aws_eks_cluster" "eks" {
-  name     = "${var.environment}"
+  name     = var.environment
   version  = var.eks_cluster_config.kubernetes_version
   role_arn = aws_iam_role.eks.arn
 

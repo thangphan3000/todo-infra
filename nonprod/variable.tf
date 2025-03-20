@@ -17,6 +17,10 @@ variable "environment" {
   default = "dev"
 }
 
+#
+# Security
+#
+
 variable "credential_key_name" {
   type    = string
   default = "key_name"
@@ -58,20 +62,6 @@ variable "instance_types" {
     "nonprod" : "t2.micro",
     "dev" : "t2.micro",
   }
-}
-
-#
-# Amazon Machine Images (AMIs)
-#
-
-variable "bastion_ami" {
-  type    = string
-  default = "ami-0c4e27b0c52857dd6"
-}
-
-variable "db_ami" {
-  type    = string
-  default = "ami-0672fd5b9210aa093"
 }
 
 #
@@ -151,16 +141,30 @@ variable "helm_releases" {
   }))
 }
 
+variable "vms" {
+  type = map(object({
+    instance = object({
+      ami                         = string
+      instance_type               = string
+      associate_public_ip_address = bool
+      security_group_ids          = list(string)
+    })
+  }))
+}
+
 #
 # DNS
 #
 
 variable "root_domain" {
-  type    = string
-  default = "cozy-todo.click"
+  type = string
 }
 
-variable "bastion_record_name" {
-  type    = string
-  default = "bastion"
+variable "subdomains" {
+  type = map(object({
+    name      = string
+    public_ip = string
+    type      = string
+    ttl       = number
+  }))
 }

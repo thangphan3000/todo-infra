@@ -20,7 +20,6 @@ module "networking" {
 
 module "security" {
   source               = "../modules/security"
-  aws_region           = var.aws_region
   environment          = var.environment
   vpc_id               = module.networking.vpc_id
   private_subnets_cidr = var.private_subnets_cidr
@@ -28,21 +27,17 @@ module "security" {
 
 module "container_registry" {
   source      = "../modules/container-registry"
-  aws_region  = var.aws_region
   project     = var.project
   environment = var.environment
 }
 
 module "compute" {
   source                   = "../modules/compute"
-  aws_region               = var.aws_region
   environment              = var.environment
   vpc_id                   = module.networking.vpc_id
   key_name                 = module.credential.key_name
-  bastion_private_key      = file(var.private_keypair_path)
-  bastion_ami              = var.bastion_ami
-  bastion_instance_type    = var.instance_types[var.environment]
   bastion_sg_id            = module.security.bastion_sg_id
+  vpn_server_sg_id         = module.security.vpn_server_sg_id
   public_subnet_id         = module.networking.public_subnet_ids[0]
   private_subnet_ids       = module.networking.private_subnet_ids
   eks_cluster_config       = var.eks_cluster_config
@@ -50,6 +45,7 @@ module "compute" {
   eks_node_launch_template = var.eks_node_launch_template
   eks_secretsmanager_arn   = var.eks_secretsmanager_arn
   helm_releases            = var.helm_releases
+  vms                      = var.vms
 }
 
 module "database" {
@@ -62,12 +58,12 @@ module "database" {
 }
 
 module "dns" {
-  source              = "../modules/dns"
-  aws_region          = var.aws_region
-  environment         = var.environment
-  root_domain         = var.root_domain
-  bastion_record_name = var.bastion_record_name
-  bastion_public_ip   = module.compute.bastion_public_ip
+  source               = "../modules/dns"
+  environment          = var.environment
+  root_domain          = var.root_domain
+  subdomains           = var.subdomains
+  bastion_public_ip    = module.compute.bastion_public_ip
+  vpn_server_public_ip = module.compute.vpn_server_public_ip
 }
 
 provider "helm" {
