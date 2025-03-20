@@ -26,7 +26,7 @@ resource "aws_instance" "vm" {
   ami                         = each.value.instance.ami
   key_name                    = var.key_name
   instance_type               = each.value.instance.instance_type
-  vpc_security_group_ids      = [for sg_name in each.value.instance.security_group_ids : local.vms.sg_ids[sg_name]]
+  vpc_security_group_ids      = [for sg_id in each.value.instance.sg_ids : local.vms.sg_ids[sg_id]]
   associate_public_ip_address = each.value.instance.associate_public_ip_address
 
   tags = {
@@ -173,6 +173,15 @@ resource "aws_eks_node_group" "node" {
   lifecycle {
     ignore_changes = [scaling_config[0].desired_size]
   }
+}
+
+data "aws_instances" "eks_nodes" {
+  filter {
+    name   = "tag:eks:cluster-name"
+    values = [aws_eks_cluster.eks.name]
+  }
+
+  depends_on = [aws_eks_node_group.node]
 }
 
 resource "aws_eks_addon" "eks_addon_pod_identity" {

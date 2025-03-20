@@ -55,15 +55,6 @@ variable "private_keypair_path" {
   type = string
 }
 
-variable "instance_types" {
-  type = map(string)
-  default = {
-    "prod" : "t3.micro",
-    "nonprod" : "t2.micro",
-    "dev" : "t2.micro",
-  }
-}
-
 #
 # Database
 #
@@ -147,7 +138,7 @@ variable "vms" {
       ami                         = string
       instance_type               = string
       associate_public_ip_address = bool
-      security_group_ids          = list(string)
+      sg_ids                      = list(string)
     })
   }))
 }
@@ -162,9 +153,24 @@ variable "root_domain" {
 
 variable "subdomains" {
   type = map(object({
-    name      = string
-    public_ip = string
-    type      = string
-    ttl       = number
+    name             = string
+    ip               = string
+    record_type      = string
+    ttl              = number
+    hosted_zone_type = string
   }))
+
+  validation {
+    condition = alltrue([
+      for subdomain in var.subdomains : contains(["public", "private"], subdomain.hosted_zone_type)
+    ])
+    error_message = "The 'hosted_zone_type' for each subdomain must be either 'public' or 'private'."
+  }
+
+  validation {
+    condition = alltrue([
+      for subdomain in var.subdomains : contains(["A", "CNAME"], subdomain.record_type)
+    ])
+    error_message = "The 'record_type' for each subdomain must be either 'A' or 'CNAME'."
+  }
 }

@@ -94,7 +94,7 @@ variable "vms" {
       ami                         = string
       instance_type               = string
       associate_public_ip_address = bool
-      security_group_ids          = list(string)
+      sg_ids                      = list(string)
     })
   }))
 }

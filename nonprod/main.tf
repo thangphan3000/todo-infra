@@ -36,6 +36,7 @@ module "compute" {
   environment              = var.environment
   vpc_id                   = module.networking.vpc_id
   key_name                 = module.credential.key_name
+  vms                      = var.vms
   bastion_sg_id            = module.security.bastion_sg_id
   vpn_server_sg_id         = module.security.vpn_server_sg_id
   public_subnet_id         = module.networking.public_subnet_ids[0]
@@ -45,7 +46,6 @@ module "compute" {
   eks_node_launch_template = var.eks_node_launch_template
   eks_secretsmanager_arn   = var.eks_secretsmanager_arn
   helm_releases            = var.helm_releases
-  vms                      = var.vms
 }
 
 module "database" {
@@ -63,6 +63,8 @@ module "dns" {
   root_domain          = var.root_domain
   subdomains           = var.subdomains
   bastion_public_ip    = module.compute.bastion_public_ip
+  eks_node_private_ip  = module.compute.eks_node_private_ip
+  vpc_id               = module.networking.vpc_id
   vpn_server_public_ip = module.compute.vpn_server_public_ip
 }
 
