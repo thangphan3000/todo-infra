@@ -318,13 +318,3 @@ resource "helm_release" "release" {
 
   depends_on = [aws_eks_node_group.node]
 }
-
-resource "helm_release" "application" {
-  name       = "todo-cozy"
-  repository = "https://thangsuperman.github.io/todo-manifests"
-  chart      = "todo-cozy"
-  namespace  = "default"
-  version    = "0.1.0"
-
-  depends_on = [helm_release.release]
-}
