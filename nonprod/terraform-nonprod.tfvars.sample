@@ -58,17 +58,8 @@ helm_releases = {
       namespace        = "default"
       create_namespace = false
       version          = "1.4.3"
+      value_file_name  = "secrets-store-csi-driver.yaml"
     }
-    default_values = [
-      {
-        name  = "syncSecret.enabled"
-        value = "true"
-      },
-      {
-        name  = "enableSecretRotation"
-        value = "true"
-      }
-    ]
   }
   "secrets-store-csi-driver-provider-aws" = {
     release = {
@@ -78,7 +69,6 @@ helm_releases = {
       create_namespace = false
       version          = "0.3.11"
     }
-    default_values = []
   }
   "cert-manager" = {
     release = {
@@ -87,36 +77,8 @@ helm_releases = {
       namespace        = "cert-manager"
       create_namespace = true
       version          = "v1.14.5"
+      value_file_name  = "cert-manager.yaml"
     }
-    default_values = [
-      {
-        name  = "installCRDs"
-        value = "true"
-      },
-      {
-        name  = "extraArgs"
-        value = "{--dns01-recursive-nameservers-only,--dns01-recursive-nameservers=8.8.8.8:53\\,1.1.1.1:53}"
-      }
-    ]
-  }
-  "prometheus" = {
-    release = {
-      repository       = "https://prometheus-community.github.io/helm-charts"
-      chart            = "kube-prometheus-stack"
-      namespace        = "monitoring"
-      create_namespace = true
-      version          = "45.7.1"
-    }
-    default_values = [
-      {
-        name  = "grafana.service.type"
-        value = "NodePort"
-      },
-      {
-        name  = "grafana.service.nodePort"
-        value = "32000"
-      }
-    ]
   }
   "ingress-nginx" = {
     release = {
@@ -125,25 +87,18 @@ helm_releases = {
       namespace        = "ingress"
       create_namespace = true
       version          = "4.10.1"
+      value_file_name  = "ingress-nginx.yaml"
     }
-    default_values = [
-      {
-        name  = "controller.ingressClassResource.name"
-        value = "ingress-nginx"
-      },
-      {
-        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
-        value = "external"
-      },
-      {
-        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-nlb-target-type"
-        value = "ip"
-      },
-      {
-        name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
-        value = "internet-facing"
-      }
-    ]
+  }
+  "prometheus" = {
+    release = {
+      repository       = "https://prometheus-community.github.io/helm-charts"
+      chart            = "kube-prometheus-stack"
+      namespace        = "monitoring"
+      create_namespace = true
+      version          = "69.7.3"
+      value_file_name  = "prometheus.yaml"
+    }
   }
 }
 

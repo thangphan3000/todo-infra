@@ -1,0 +1,35 @@
+grafana:
+  service:
+    type: NodePort
+    nodePort: 32448
+
+alertmanager:
+  templateFiles:
+    slack.tmpl: |-
+      {{ define "__alerts" }}{{ range . }}
+      🪪 *{{ .Labels.alertname }}*
+      {{- if .Annotations.summary }}
+      📝 {{ .Annotations.summary }}{{ end }}
+      {{- if .Annotations.description }}
+      📖 {{ .Annotations.description }}{{ end }}
+      🏷 Labels:
+      {{ range .Labels.SortedPairs }}  _{{ .Name }}_: `{{ .Value }}`
+      {{ end }}{{ end }}
+      {{ end }}
+
+      {{ define "slack.message" }}
+      {{ if gt (len .Alerts.Firing) 0 }}
+      🔥 Alerts Firing 🔥
+      {{ template "__alerts" .Alerts.Firing }}
+      {{ end }}
+      {{ if gt (len .Alerts.Resolved) 0 }}
+      ✅ Alerts Resolved ✅
+      {{ template "__alerts" .Alerts.Resolved }}
+      {{ end }}
+      {{ end }}
+  alertmanagerSpec:
+    alertmanagerConfigSelector:
+      matchLabels:
+        release: prometheus
+    alertmanagerConfigMatcherStrategy:
+      type: None

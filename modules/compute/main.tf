@@ -304,17 +304,9 @@ resource "helm_release" "release" {
   repository       = each.value.release.repository
   chart            = each.value.release.chart
   namespace        = each.value.release.namespace
-  version          = each.value.release.version
   create_namespace = each.value.release.create_namespace
-
-  dynamic "set" {
-    for_each = each.value.default_values
-
-    content {
-      name  = set.value.name
-      value = set.value.value
-    }
-  }
+  version          = each.value.release.version
+  values           = each.value.release.value_file_name != null ? [file("${path.module}/helm-values/${each.value.release.value_file_name}")] : []
 
   depends_on = [aws_eks_node_group.node]
 }

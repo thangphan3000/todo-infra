@@ -123,12 +123,9 @@ variable "helm_releases" {
       chart            = string
       namespace        = string
       version          = string
+      value_file_name  = optional(string)
       create_namespace = bool
     })
-    default_values = list(object({
-      name  = string
-      value = string
-    }))
   }))
 }
 

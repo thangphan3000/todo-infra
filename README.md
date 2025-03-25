@@ -51,7 +51,7 @@ This template provides a handful of scripts to make your dev experience better!
   - `AWS_PROFILE=nonprod terraform apply --var-file <your-file-name>.tfvars`
 - Format `*.tf` files
   - `terraform fmt -recursive`
-- Force unlock terraform state. If Terraform halts due to STS (Security Token Service) credentials expiring during an apply operation, you can force-unlock the state using the following command
+- Force unlock terraform state. If Terraform halts due to STS (Security Token Service) credentials expiring during an apply/ destroy operation, you can force-unlock the state using the following command
   - `AWS_PROFILE=nonprod terraform force-unlock <lock-id>`
 
 ## Important notes
