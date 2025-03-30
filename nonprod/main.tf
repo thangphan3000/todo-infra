@@ -68,6 +68,11 @@ module "dns" {
   vpn_server_public_ip = module.compute.vpn_server_public_ip
 }
 
+module "user" {
+  source      = "../modules/users"
+  environment = var.environment
+}
+
 provider "helm" {
   kubernetes {
     host                   = module.compute.eks_cluster_endpoint
