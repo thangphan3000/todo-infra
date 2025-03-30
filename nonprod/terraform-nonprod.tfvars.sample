@@ -100,6 +100,15 @@ helm_releases = {
       value_file_name  = "prometheus.yaml"
     }
   }
+  "eck-operator" = {
+    release = {
+      repository       = "https://helm.elastic.co"
+      chart            = "eck-operator"
+      namespace        = "elastic-system"
+      create_namespace = true
+      version          = "2.16.1"
+    }
+  } 
 }
 
 vms = {
