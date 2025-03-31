@@ -12,6 +12,17 @@ locals {
       }
     ]
   })
+  roles = {
+    cert_manager = {
+      name   = "eksPodIdentityRoute53"
+    }
+    secrets_store_csi_driver = {
+      name = "eksPodIdentityCSIDriver"
+    }
+    "ebs_csi_driver" = {
+      name   = "eksPodIdentityCSIDriver"
+    }
+  }
   vms = {
     sg_ids = {
       "bastion-sg-id"    = var.bastion_sg_id
@@ -248,8 +259,9 @@ resource "helm_release" "aws_lbc" {
   }
 }
 
-resource "aws_iam_role" "cert_manager" {
-  name               = "${var.environment}-eksPodIdentityRoute53"
+resource "aws_iam_role" "role" {
+  for_each           = local.roles
+  name               = "${var.environment}-${each.value.name}"
   assume_role_policy = local.eks_pod_identity_assume_role_policy
 }
 
@@ -258,24 +270,7 @@ resource "aws_iam_policy" "cert_manager" {
   policy = file("${path.module}/iam/AWSRoute53ForCertManager.json")
 }
 
-resource "aws_iam_role_policy_attachment" "cert_manager" {
-  policy_arn = aws_iam_policy.cert_manager.arn
-  role       = aws_iam_role.cert_manager.name
-}
-
-resource "aws_eks_pod_identity_association" "cert_manager" {
-  cluster_name    = aws_eks_cluster.eks.name
-  namespace       = "cert-manager"
-  service_account = "cert-manager"
-  role_arn        = aws_iam_role.cert_manager.arn
-}
-
-resource "aws_iam_role" "csi_driver" {
-  name               = "${var.environment}-eksPodIdentityCSIDriver"
-  assume_role_policy = local.eks_pod_identity_assume_role_policy
-}
-
-resource "aws_iam_policy" "csi_driver" {
+resource "aws_iam_policy" "secrets_store_csi_driver" {
   name = "${var.environment}-eksSecretsStoreCSIDriver"
 
   policy = jsonencode({
@@ -293,33 +288,40 @@ resource "aws_iam_policy" "csi_driver" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "csi_driver" {
-  policy_arn = aws_iam_policy.csi_driver.arn
-  role       = aws_iam_role.csi_driver.name
+resource "aws_iam_role_policy_attachment" "cert_manager" {
+  policy_arn = aws_iam_policy.cert_manager.arn
+  role       = aws_iam_role.role["cert_manager"].name
 }
 
-resource "aws_eks_pod_identity_association" "csi_driver" {
-  cluster_name    = aws_eks_cluster.eks.name
-  namespace       = "default"
-  service_account = "app-secrets"
-  role_arn        = aws_iam_role.csi_driver.arn
-}
-
-resource "aws_iam_role" "eks_ebs_csi_driver" {
-  name               = "${var.environment}-eksPodIdentityEBSCSIDriver"
-  assume_role_policy = local.eks_pod_identity_assume_role_policy
+resource "aws_iam_role_policy_attachment" "secrets_store_csi_driver" {
+  policy_arn = aws_iam_policy.secrets_store_csi_driver.arn
+  role       = aws_iam_role.role["secrets_store_csi_driver"].name
 }
 
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  role       = aws_iam_role.eks_ebs_csi_driver.name
+  role       = aws_iam_role.role["ebs_csi_driver"].name
+}
+
+resource "aws_eks_pod_identity_association" "cert_manager" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "cert-manager"
+  service_account = "cert-manager"
+  role_arn        = aws_iam_role.role["cert_manager"].arn
+}
+
+resource "aws_eks_pod_identity_association" "secrets_store_csi_driver" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "default"
+  service_account = "app-secrets"
+  role_arn        = aws_iam_role.role["secrets_store_csi_driver"].arn
 }
 
 resource "aws_eks_pod_identity_association" "ebs_csi_driver" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
-  role_arn        = aws_iam_role.eks_ebs_csi_driver.arn
+  role_arn        = aws_iam_role.role["ebs_csi_driver"].arn
 }
 
 resource "helm_release" "release" {
