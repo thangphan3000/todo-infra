@@ -17,10 +17,10 @@ locals {
       name   = "eksPodIdentityRoute53"
     }
     secrets_store_csi_driver = {
-      name = "eksPodIdentityCSIDriver"
+      name = "eksPodIdentitySecretsStoreCSIDriver"
     }
     "ebs_csi_driver" = {
-      name   = "eksPodIdentityCSIDriver"
+      name   = "eksPodIdentityEBSCSIDriver"
     }
   }
   vms = {
