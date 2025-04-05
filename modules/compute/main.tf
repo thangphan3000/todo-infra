@@ -22,6 +22,9 @@ locals {
     "ebs_csi_driver" = {
       name   = "eksPodIdentityEBSCSIDriver"
     }
+    "argocd_image_updater" = {
+      name = "eksPodIdentityArgoCDImageUpdater"
+    }
   }
   vms = {
     sg_ids = {
@@ -303,6 +306,11 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   role       = aws_iam_role.role["ebs_csi_driver"].name
 }
 
+resource "aws_iam_role_policy_attachment" "image_updater" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.role["argocd_image_updater"].name
+}
+
 resource "aws_eks_pod_identity_association" "cert_manager" {
   cluster_name    = aws_eks_cluster.eks.name
   namespace       = "cert-manager"
@@ -322,6 +330,13 @@ resource "aws_eks_pod_identity_association" "ebs_csi_driver" {
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
   role_arn        = aws_iam_role.role["ebs_csi_driver"].arn
+}
+
+resource "aws_eks_pod_identity_association" "image_updater" {
+  cluster_name    = aws_eks_cluster.eks.name
+  namespace       = "argocd"
+  service_account = "argocd-image-updater"
+  role_arn        = aws_iam_role.role["argocd_image_updater"].arn
 }
 
 resource "helm_release" "release" {

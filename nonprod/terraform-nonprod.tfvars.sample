@@ -108,7 +108,36 @@ helm_releases = {
       create_namespace = true
       version          = "2.16.1"
     }
-  } 
+  }
+  "sealed-secrets" = {
+    release = {
+      repository       = "https://bitnami-labs.github.io/sealed-secrets"
+      chart            = "sealed-secrets"
+      namespace        = "sealed-secrets"
+      create_namespace = true
+      version          = "2.17.2"
+    }
+  }
+  "argocd" = {
+    release = {
+      repository       = "https://argoproj.github.io/argo-helm"
+      chart            = "argo-cd"
+      namespace        = "argocd"
+      create_namespace = true
+      version          = "7.8.22"
+      value_file_name  = "argocd.yaml"
+    }
+  }
+  "image-updater" = {
+    release = {
+      repository       = "https://argoproj.github.io/argo-helm"
+      chart            = "argocd-image-updater"
+      namespace        = "argocd"
+      create_namespace = true
+      version          = "0.12.1"
+      value_file_name  = "image-updater.yaml"
+    }
+  }
 }
 
 vms = {

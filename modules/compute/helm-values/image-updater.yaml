@@ -1,0 +1,19 @@
+serviceAccount:
+  name: argocd-image-updater
+
+authScripts:
+  enabled: true
+  scripts:
+    auth.sh: |
+      #!/bin/sh
+      aws ecr get-authorization-token --output text --query 'authorizationData[].authorizationToken' --region ap-southeast-1 | base64 -d
+
+config:
+  registries:
+    - name: AWS ECR
+      api_url: https://864899847999.dkr.ecr.ap-southeast-1.amazonaws.com
+      prefix: 864899847999.dkr.ecr.ap-southeast-1.amazonaws.com
+      ping: yes
+      insecure: no
+      credentials: ext:/scripts/auth.sh
+      credsexpire: 10h
