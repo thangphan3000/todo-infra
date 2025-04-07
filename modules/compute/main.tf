@@ -14,13 +14,13 @@ locals {
   })
   roles = {
     cert_manager = {
-      name   = "eksPodIdentityRoute53"
+      name = "eksPodIdentityRoute53"
     }
     secrets_store_csi_driver = {
       name = "eksPodIdentitySecretsStoreCSIDriver"
     }
     "ebs_csi_driver" = {
-      name   = "eksPodIdentityEBSCSIDriver"
+      name = "eksPodIdentityEBSCSIDriver"
     }
     "argocd_image_updater" = {
       name = "eksPodIdentityArgoCDImageUpdater"
