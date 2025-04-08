@@ -8,57 +8,25 @@ variable "trusted_subnet_ids" {
   nullable = false
 }
 
-variable "db_engine_version" {
-  type     = string
-  nullable = false
-}
-
-variable "db_username" {
-  type     = string
-  nullable = false
-}
-
-variable "db_password" {
-  type     = string
-  nullable = false
-}
-
-variable "db_name" {
-  type     = string
-  nullable = false
-}
-
 variable "db_sg_id" {
   type     = string
   nullable = false
 }
 
-variable "db_instance_class" {
-  type     = string
-  nullable = false
-}
-
-variable "db_port" {
-  type     = number
-  nullable = false
-}
-
-variable "db_allocated_storage" {
-  type     = string
-  nullable = false
-}
-
-variable "db_storage_type" {
-  type     = string
-  nullable = false
-}
-
-variable "db_backup_retention_period" {
-  type     = number
-  nullable = false
-}
-
-variable "db_final_snapshot_identifier" {
-  type     = string
-  nullable = false
+variable "db_config" {
+  type = object({
+    username = string
+    password = string
+    name     = string
+    engine = object({
+      type    = string
+      version = string
+    })
+    port                      = number
+    allocated_storage         = number
+    instance_class            = string
+    backup_retention_period   = number
+    storage_type              = string
+    final_snapshot_identifier = string
+  })
 }

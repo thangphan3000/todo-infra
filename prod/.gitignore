@@ -1,0 +1,9 @@
+# Folders
+.terraform
+.terraform.lock.hcl
+keypair
+
+# Files
+*.tfvars
+*.tfstate
+*.tfstate.backup

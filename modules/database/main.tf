@@ -10,19 +10,19 @@ resource "aws_db_subnet_group" "subnet_group" {
 
 resource "aws_rds_cluster" "cluster" {
   cluster_identifier        = "${var.environment}-cluster"
-  engine                    = "mysql"
-  db_subnet_group_name      = aws_db_subnet_group.subnet_group.name
-  engine_version            = var.db_engine_version
-  db_cluster_instance_class = var.db_instance_class
-  database_name             = var.db_name
-  port                      = var.db_port
-  storage_type              = var.db_storage_type
-  allocated_storage         = var.db_allocated_storage
-  master_username           = var.db_username
-  master_password           = var.db_password
-  backup_retention_period   = var.db_backup_retention_period
+  db_cluster_instance_class = var.db_config.instance_class
+  engine                    = var.db_config.engine.type
+  engine_version            = var.db_config.engine.version
+  database_name             = var.db_config.name
+  port                      = var.db_config.port
+  storage_type              = var.db_config.storage_type
+  allocated_storage         = var.db_config.allocated_storage
+  master_username           = var.db_config.username
+  master_password           = var.db_config.password
+  backup_retention_period   = var.db_config.backup_retention_period
   skip_final_snapshot       = false
-  final_snapshot_identifier = "${var.environment}-${var.db_final_snapshot_identifier}-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
+  db_subnet_group_name      = aws_db_subnet_group.subnet_group.name
+  final_snapshot_identifier = "${var.environment}-${var.db_config.final_snapshot_identifier}-${formatdate("YYYYMMDD-HHmmss", timestamp())}"
   vpc_security_group_ids    = [var.db_sg_id]
 
   tags = {

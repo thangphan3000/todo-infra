@@ -1,0 +1,186 @@
+environment  = "prod"
+keypair_path = "./keypair/key.pub"
+
+vpc_cidr             = "10.0.0.0/16"
+public_subnets_cidr  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+private_subnets_cidr = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+trusted_subnets_cidr = ["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"]
+
+db = {
+  username = "admin"
+  password = "Hallo"
+  name     = "prod_hallo"
+  engine = {
+    type    = "mysql"
+    version = "8.0.40"
+  }
+  port                      = 3302
+  allocated_storage         = 20
+  instance_class            = "db.t3.micro"
+  backup_retention_period   = 1
+  storage_type              = "gp3"
+  final_snapshot_identifier = "app-db-snapshot"
+}
+
+eks_cluster_config = {
+  kubernetes_version = "1.32"
+  node_group = {
+    name          = "general"
+    capacity_type = "ON_DEMAND"
+    instance_type = "t3.medium"
+    max_unavailable_node = 1
+    scaling_config = {
+      desired_size = 1
+      min_size     = 1
+      max_size     = 10
+    }
+  }
+}
+
+eks_node_launch_template = {
+  name_prefix = "eks-node-launch-template-"
+  block_device_mappings = {
+    device_name = "/dev/xvda"
+    ebs = {
+      volume_size = 20
+      volume_type = "gp3"
+    }
+  }
+}
+
+eks_secretsmanager_arn = "arn:aws:secretsmanager:ap-southeast-1:<aws-account-id>:secret:nonprod/config"
+
+helm_releases = {
+  "secrets-store-csi-driver" = {
+    release = {
+      repository       = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
+      chart            = "secrets-store-csi-driver"
+      namespace        = "default"
+      create_namespace = false
+      version          = "1.4.3"
+      value_file_name  = "secrets-store-csi-driver.yaml"
+    }
+  }
+  "secrets-store-csi-driver-provider-aws" = {
+    release = {
+      repository       = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
+      chart            = "secrets-store-csi-driver-provider-aws"
+      namespace        = "kube-system"
+      create_namespace = false
+      version          = "0.3.11"
+    }
+  }
+  "cert-manager" = {
+    release = {
+      repository       = "https://charts.jetstack.io"
+      chart            = "cert-manager"
+      namespace        = "cert-manager"
+      create_namespace = true
+      version          = "v1.14.5"
+      value_file_name  = "cert-manager.yaml"
+    }
+  }
+  "ingress-nginx" = {
+    release = {
+      repository       = "https://kubernetes.github.io/ingress-nginx"
+      chart            = "ingress-nginx"
+      namespace        = "ingress"
+      create_namespace = true
+      version          = "4.10.1"
+      value_file_name  = "ingress-nginx.yaml"
+    }
+  }
+  "prometheus" = {
+    release = {
+      repository       = "https://prometheus-community.github.io/helm-charts"
+      chart            = "kube-prometheus-stack"
+      namespace        = "monitoring"
+      create_namespace = true
+      version          = "69.7.3"
+      value_file_name  = "prometheus.yaml"
+    }
+  }
+  "eck-operator" = {
+    release = {
+      repository       = "https://helm.elastic.co"
+      chart            = "eck-operator"
+      namespace        = "elastic-system"
+      create_namespace = true
+      version          = "2.16.1"
+    }
+  }
+  "sealed-secrets" = {
+    release = {
+      repository       = "https://bitnami-labs.github.io/sealed-secrets"
+      chart            = "sealed-secrets"
+      namespace        = "sealed-secrets"
+      create_namespace = true
+      version          = "2.17.2"
+    }
+  }
+  "argocd" = {
+    release = {
+      repository       = "https://argoproj.github.io/argo-helm"
+      chart            = "argo-cd"
+      namespace        = "argocd"
+      create_namespace = true
+      version          = "7.8.22"
+      value_file_name  = "argocd.yaml"
+    }
+  }
+  "image-updater" = {
+    release = {
+      repository       = "https://argoproj.github.io/argo-helm"
+      chart            = "argocd-image-updater"
+      namespace        = "argocd"
+      create_namespace = true
+      version          = "0.12.1"
+      value_file_name  = "image-updater.yaml"
+    }
+  }
+}
+
+vms = {
+  "bastion" = {
+    instance = {
+      ami                         = "ami-0c4e27b0c52857dd6"
+      instance_type               = "t2.micro"
+      sg_ids                      = ["bastion-sg-id"]
+      associate_public_ip_address = true
+    }
+  }
+  "vpn-server" = {
+    instance = {
+      ami                         = "ami-0672fd5b9210aa093"
+      instance_type               = "t2.micro"
+      sg_ids                      = ["vpn-server-sg-id"]
+      associate_public_ip_address = true
+    }
+  }
+}
+
+root_domain = "cozy-todo.click"
+
+subdomains = {
+  "bastion" = {
+    name             = "bastion"
+    ip               = "bastion-ip"
+    record_type      = "A"
+    ttl              = 300
+    hosted_zone_type = "public"
+  }
+  "vpn-server" = {
+    name             = "vpn-server"
+    ip               = "vpn-server-ip"
+    record_type      = "A"
+    ttl              = 300
+    hosted_zone_type = "public"
+  }
+  "grafana" = {
+    name             = "grafana"
+    ip               = "grafana-ip"
+    record_type      = "A"
+    ttl              = 300
+    hosted_zone_type = "private"
+  }
+}
